@@ -1,0 +1,12 @@
+{
+  "name": "threads_clone",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:backend": "bun --cwd apps/backend dev",
+    "dev:frontend": "bun --cwd apps/frontend dev"
+  }
+}
