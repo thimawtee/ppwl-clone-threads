@@ -24,6 +24,6 @@
     "typescript": "latest"
   },
   "prisma": {
-  "seed": "bun prisma/seed.ts"
-}
+    "seed": "bun prisma/seed.ts"
+  }
 }
