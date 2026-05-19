@@ -1,8 +1,4 @@
-import { Elysia } from "elysia";
-import { cors } from "@elysiajs/cors";
-import bcrypt from "bcryptjs";
-import { prisma } from "./lib/prisma";
-import jwt from "jsonwebtoken";
+import app from "./app";
 
 const onlineUsers = new Map<string, any>();
 
@@ -831,3 +827,7 @@ const app = new Elysia()
   .listen(3001);;
 
 console.log(`Backend running at http://localhost:${app.server?.port}`);
+// Menjalankan server Elysia di port 3001
+app.listen(3001);
+
+console.log(`🚀 Backend running at http://localhost:${app.server?.port || 3001}`);
