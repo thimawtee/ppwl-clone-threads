@@ -1,3 +1,20 @@
+import { useState, useEffect, useRef } from "react";
+import logoInstagram from "../assets/images/logo-Instagram.png";
+import CreatePostModal from "../components/CreatePostModal";
+import { useNavigate } from "react-router-dom";
+import { API_URL } from "../services/api";
+
+import {
+  Heart,
+  MessageCircle,
+  Repeat2,
+  Send,
+  MoreHorizontal,
+  Image,
+  X,
+  Loader2,
+} from "lucide-react";
+
 import { useState, useEffect } from "react";
 import PostCard from "../components/PostCard";
 import CreatePostModal from "../components/CreatePostModal";
