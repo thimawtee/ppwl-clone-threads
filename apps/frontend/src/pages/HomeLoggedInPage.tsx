@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import { API_URL } from "../services/api";
 import LoggedInSidebar from "../components/loggedin/LoggedInSidebar";
 import FeedComposer from "../components/loggedin/FeedComposer";
 import FeedPost from "../components/loggedin/FeedPost";
@@ -22,11 +22,19 @@ interface Post {
 }
 
 export default function HomeLoggedInPage() {
-  const BACKEND_URL =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+  const BACKEND_URL = API_URL;
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  const user = localStorage.getItem("user");
+
+  if (!token || !user) {
+    window.location.href = "/login";
+  }
+}, []);
 
   useEffect(() => {
     async function fetchPosts() {

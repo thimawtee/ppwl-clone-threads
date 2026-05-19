@@ -157,7 +157,7 @@
 //   );
 // }
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import LoggedInSidebar from "../components/loggedin/LoggedInSidebar";
 import { BarChart3, Square as Instagram, MoreHorizontal, SquarePen, UserPlus, Pen } from "lucide-react";
 
@@ -166,56 +166,26 @@ interface UserProfile {
   name: string;
   username: string;
   avatarUrl: string | null;
-  followerCount?: number; // Tambahkan ini jika backend mengembalikan jumlah pengikut
 }
 
 export default function ProfilePage() {
-  const BACKEND_URL =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
-
   const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchProfile() {
+    // Mengambil data user yang disimpan oleh LoginPage di localStorage
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
       try {
-        // Sesuaikan endpoint ini dengan route data user login di backend kamu (misal: /profile atau /me)
-        const res = await fetch(`${BACKEND_URL}/profile`, {
-          method: "GET",
-          // Jika backend menggunakan token autentikasi, hilangkan komentar di bawah ini:
-          // headers: {
-          //   "Authorization": `Bearer ${localStorage.getItem("token")}`
-          // }
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          setUser(data.data);
-        }
+        setUser(JSON.parse(savedUser));
       } catch (error) {
-        console.error("Failed to fetch profile:", error);
-      } finally {
-        setLoading(false);
+        console.error("Failed to parse user data from localStorage", error);
       }
     }
-
-  fetchProfile();
   }, []);
 
   // Placeholder avatar default jika avatarUrl bernilai null
   const defaultAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80";
   const userAvatar = user?.avatarUrl || defaultAvatar;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-black text-white flex">
-        <LoggedInSidebar />
-        <main className="flex-1 flex justify-center items-center">
-          <div className="text-center text-[#777]">Loading profile...</div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-black text-white flex">
@@ -228,7 +198,9 @@ export default function ProfilePage() {
           
           {/* Top Bar / Header */}
           <div className="px-6 pt-5 pb-3 flex justify-between items-center">
-            <span className="text-base font-semibold tracking-wide">{user?.username}</span>
+            <span className="text-base font-semibold tracking-wide">
+              {user?.username || "loading..."}
+            </span>
             <button className="text-[#777777] hover:text-white transition-colors">
               <MoreHorizontal size={22} />
             </button>
@@ -239,9 +211,13 @@ export default function ProfilePage() {
             <div className="flex justify-between items-start">
               {/* Left Side: Identity */}
               <div>
-                <h2 className="text-2xl font-bold tracking-tight text-white">{user?.name}</h2>
-                <p className="text-sm text-[#777777] mt-0.5">{user?.username}</p>
-                <p className="text-sm text-[#777777] mt-5">{user?.followerCount ?? 0} pengikut</p>
+                <h2 className="text-2xl font-bold tracking-tight text-white">
+                  {user?.name || "Loading..."}
+                </h2>
+                <p className="text-sm text-[#777777] mt-0.5">
+                  {user?.username ? `@${user.username}` : ""}
+                </p>
+                <p className="text-sm text-[#777777] mt-5">0 pengikut</p>
               </div>
 
               {/* Right Side: Avatar & Social Icons */}
