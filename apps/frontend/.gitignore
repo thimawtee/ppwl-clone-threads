@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+dist
+dist-lambda
+lambda-backend.zip
+node_modules
+.env
