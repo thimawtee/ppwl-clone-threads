@@ -36,8 +36,14 @@ function timeAgo(dateStr: string): string {
 
 export default function FeedPostCard({
   post,
+  isLoggedIn,
+  onLoginRequired,
+  onCommentClick,
 }: {
   post: Post;
+  isLoggedIn?: boolean;
+  onLoginRequired?: () => void;
+  onCommentClick?: () => void;
 }) {
   return (
     <article className="px-6 py-4 border-b border-[#1f1f1f]">
@@ -84,7 +90,7 @@ export default function FeedPostCard({
               <img
                 src={post.imageUrl}
                 alt=""
-                className="w-full max-h-[500px] object-cover"
+                className="w-full max-h-125 object-cover"
               />
             </div>
           )}
@@ -95,7 +101,16 @@ export default function FeedPostCard({
               <Heart size={19} />
             </button>
 
-            <button className="hover:text-white">
+            <button
+              className="hover:text-white"
+              onClick={() => {
+                if (!isLoggedIn) {
+                  onLoginRequired?.();
+                  return;
+                }
+                onCommentClick?.();
+              }}
+            >
               <MessageCircle size={19} />
             </button>
 
