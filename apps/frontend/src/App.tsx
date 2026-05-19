@@ -1,23 +1,24 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import BerandaPage from "./pages/BerandaPage";
+
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import BerandaPage from "./pages/BerandaPage"
+import LoginPage from "./pages/LoginPage"
+import RegisterPage from "./pages/RegisterPage"
 import HomeLoggedInPage from "./pages/HomeLoggedInPage";
 import ProfilePage from "./pages/ProfilePage";
-import LoginPage from "./pages/LoginPage";
 import ThreadDetailPage from "./components/threaddetail"; 
+
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<BerandaPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/home" element={<HomeLoggedInPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        
-        {/* ─── Cuma nambah 1 baris ini, tanpa ngerusak susunan aslinya 💬 ─── */}
         <Route path="/posts/:id" element={<ThreadDetailPage />} />
-
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
-  );
+  )
 }
