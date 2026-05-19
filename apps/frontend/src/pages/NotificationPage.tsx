@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Home, Search, Heart, User, MoreHorizontal, Loader2, ChevronDown, MessageCircle, UserPlus, X, LogIn } from "lucide-react";
 import { toast } from "sonner";
+import { useAuthStore } from "../stores/auth.store";
 
 interface NotifActor { id: string; name: string; username: string; avatarUrl: string | null; }
 interface NotifPost { id: string; content: string; }
@@ -99,10 +100,10 @@ export default function NotificationPage() {
   const [showLogin, setShowLogin] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [currentUser, setCurrentUser] = useState<PostUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => { try { const u = sessionStorage.getItem("threads_user"); const t = sessionStorage.getItem("threads_token"); if (u && t) { setCurrentUser(JSON.parse(u)); setToken(t); } } catch {} }, []);
+  const currentUser = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const logoutUser = useAuthStore((state) => state.logout);
   useEffect(() => { function h(e: MouseEvent) { if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setShowDropdown(false); } document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, []);
 
   useEffect(() => {
@@ -117,8 +118,15 @@ export default function NotificationPage() {
     }
   }, [currentUser, token]);
 
-  function handleLogin(u: PostUser, t: string) { setCurrentUser(u); setToken(t); sessionStorage.setItem("threads_user", JSON.stringify(u)); sessionStorage.setItem("threads_token", t); sessionStorage.removeItem("threads_welcome_shown"); }
-  function handleLogout() { setCurrentUser(null); setToken(null); setNotifications([]); sessionStorage.removeItem("threads_user"); sessionStorage.removeItem("threads_token"); sessionStorage.removeItem("threads_welcome_shown"); }
+  function handleLogin(u: PostUser, t: string) {
+    setAuth(u, t);
+    sessionStorage.removeItem("threads_welcome_shown");
+  }
+  function handleLogout() {
+    logoutUser();
+    setNotifications([]);
+    sessionStorage.removeItem("threads_welcome_shown");
+  }
 
   return (
     <div className="min-h-screen bg-[#000] text-white" style={{ fontFamily: "'Inter Variable', -apple-system, system-ui, sans-serif" }}>
@@ -189,8 +197,7 @@ export default function NotificationPage() {
               {!currentUser ? (
                 <div className="bg-[#181818] rounded-2xl flex items-center justify-center" style={{ minHeight: "calc(100vh - 180px)" }}>
                   <div className="text-center p-8">
-                    <p className="text-[#555] text-[15px] italic mb-6">No activity yet.</p>
-                    <button onClick={() => setShowLogin(true)} className="bg-white text-black font-semibold py-2.5 px-6 rounded-xl text-sm hover:bg-[#e0e0e0] transition-colors">Log in</button>
+                    <p className="text-[#555] text-[15px] italic">No activity yet.</p>
                   </div>
                 </div>
               ) : loading ? (

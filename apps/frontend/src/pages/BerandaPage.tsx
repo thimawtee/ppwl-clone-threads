@@ -15,6 +15,7 @@ import {
   Loader2,
   LogIn,
 } from "lucide-react";
+import { useAuthStore } from "../stores/auth.store";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -621,22 +622,10 @@ export default function BerandaPage() {
   const [showLogin, setShowLogin] = useState(false);
 
   // Auth state
-  const [currentUser, setCurrentUser] = useState<PostUser | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
-  // Load auth from sessionStorage on mount
-  useEffect(() => {
-    try {
-      const savedUser = sessionStorage.getItem("threads_user");
-      const savedToken = sessionStorage.getItem("threads_token");
-      if (savedUser && savedToken) {
-        setCurrentUser(JSON.parse(savedUser));
-        setToken(savedToken);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const currentUser = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const logoutUser = useAuthStore((state) => state.logout);
 
   // Fetch posts
   async function fetchPosts() {
@@ -663,25 +652,11 @@ export default function BerandaPage() {
   }, []);
 
   function handleLoginSuccess(user: PostUser, tok: string) {
-    setCurrentUser(user);
-    setToken(tok);
-    try {
-      sessionStorage.setItem("threads_user", JSON.stringify(user));
-      sessionStorage.setItem("threads_token", tok);
-    } catch {
-      /* ignore */
-    }
+    setAuth(user, tok);
   }
 
   function handleLogout() {
-    setCurrentUser(null);
-    setToken(null);
-    try {
-      sessionStorage.removeItem("threads_user");
-      sessionStorage.removeItem("threads_token");
-    } catch {
-      /* ignore */
-    }
+    logoutUser();
   }
 
   async function handlePost(content: string, imageUrl?: string) {
