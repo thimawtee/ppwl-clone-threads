@@ -1,12 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "sonner";
 import BerandaPage from "./pages/BerandaPage";
-import NotificationPage from "./pages/NotificationPage";
 import HomeLoggedInPage from "./pages/HomeLoggedInPage";
+import NotificationSystem from "./components/NotificationSystem";
 
 export default function App() {
   return (
     <BrowserRouter>
+      <NotificationSystem />
       <Toaster
         theme="dark"
         position="top-center"
@@ -23,7 +24,6 @@ export default function App() {
       />
       <Routes>
         <Route path="/" element={<BerandaPage />} />
-        <Route path="/activity" element={<NotificationPage />} />
         <Route path="/home" element={<HomeLoggedInPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

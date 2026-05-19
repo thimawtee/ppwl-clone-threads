@@ -4,8 +4,48 @@ import bcrypt from "bcryptjs";
 import { prisma } from "./lib/prisma";
 import jwt from "jsonwebtoken";
 
+const onlineUsers = new Map<string, any>();
+
 const app = new Elysia()
   .use(cors())
+  .ws("/ws/notifications", {
+  open(ws) {
+    console.log("WS CONNECTED");
+
+    const userId = ws.data.query?.userId;
+
+    console.log("USER ID:", userId);
+
+    if (userId) {
+      onlineUsers.set(userId as string, ws);
+
+      console.log(`User ${userId} connected`);
+
+      // TEST NOTIF OTOMATIS
+      setTimeout(() => {
+        ws.send(
+          JSON.stringify({
+            type: "LIKE",
+          })
+        );
+      }, 3000);
+    }
+  },
+
+  message(ws, message) {
+    console.log("MESSAGE:", message);
+  },
+
+  close(ws) {
+    const userId = ws.data.query?.userId;
+
+    if (userId) {
+      onlineUsers.delete(userId as string);
+
+      console.log(`User ${userId} disconnected`);
+    }
+  },
+})
 
   .get("/", () => ({
     success: true,
@@ -489,7 +529,7 @@ const app = new Elysia()
 
     // notif ke pemilik post
     if (post.userId !== decoded.userId) {
-      await prisma.notification.create({
+      const notification = await prisma.notification.create({
         data: {
           type: "COMMENT",
           userId: post.userId,
@@ -498,6 +538,12 @@ const app = new Elysia()
           commentId: comment.id,
         },
       });
+
+      // Kirim secara Real-Time jika pengguna sedang online
+      const targetWs = onlineUsers.get(post.userId);
+      if (targetWs) {
+        targetWs.send(JSON.stringify(notification));
+      }
     }
 
     return {
@@ -630,7 +676,7 @@ const app = new Elysia()
     });
 
     if (post.userId !== decoded.userId) {
-      await prisma.notification.create({
+      const notification = await prisma.notification.create({
         data: {
           type: "LIKE",
           userId: post.userId,
@@ -638,6 +684,12 @@ const app = new Elysia()
           postId: post.id,
         },
       });
+
+      // Kirim secara Real-Time jika pengguna sedang online
+      const targetWs = onlineUsers.get(post.userId);
+      if (targetWs) {
+        targetWs.send(JSON.stringify(notification));
+      }
     }
 
     return {

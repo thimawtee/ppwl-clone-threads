@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import logoInstagram from "../assets/images/logo-instagram.png";
+import logoInstagram from "../assets/images/logo-Instagram.png";
 import CreatePostModal from "../components/CreatePostModal";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../services/api";
 
 import {
   Heart,
@@ -13,7 +14,6 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { useAuthStore } from "../stores/auth.store";
 
 import { DesktopSidebar, MobileBottomNav } from "../components/Sidebar";
 
@@ -260,22 +260,24 @@ function PostCard({
 // ─── Main ──────────────────────────────────────────────────────────────
 
 export default function BerandaPage() {
-  const BACKEND_URL =
-    import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+  const BACKEND_URL = API_URL;
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePage, setActivePage] = useState("home");
   const navigate = useNavigate();
 
-  // Auth state
-  const currentUser = useAuthStore((state) => state.user);
-  const token = useAuthStore((state) => state.token);
-  const setAuth = useAuthStore((state) => state.setAuth);
-  const logoutUser = useAuthStore((state) => state.logout);
+  const [currentUser, setCurrentUser] = useState<PostUser | null>(null);
 
   const [showLogin, setShowLogin] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -293,7 +295,6 @@ export default function BerandaPage() {
 
     fetchPosts();
   }, []);
-
 
   return (
     <div className="min-h-screen bg-[#101010] text-white">
