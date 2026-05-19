@@ -19,6 +19,7 @@
   "devDependencies": {
     "@types/bcryptjs": "latest",
     "@types/jsonwebtoken": "^9.0.10",
+    "dotenv": "^17.4.2",
     "prisma": "6",
     "typescript": "latest"
   }

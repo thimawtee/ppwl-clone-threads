@@ -6,7 +6,19 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:backend": "bun --cwd apps/backend dev",
-    "dev:frontend": "bun --cwd apps/frontend dev"
+    "dev:fe": "bun --cwd apps/frontend dev",
+    "dev:be": "bun --cwd apps/backend dev",
+    "dev": "concurrently \"bun run dev:be\" \"bun run dev:fe\"",
+    "build:shared": "bun --cwd packages/shared build",
+    "build:fe": "bun --cwd apps/frontend build",
+    "build:be": "bun --cwd apps/backend build",
+    "build": "bun run build:shared && bun run build:fe && bun run build:be",
+    "db:generate": "bun --cwd apps/backend prisma generate",
+    "db:migrate": "bun --cwd apps/backend prisma migrate dev",
+    "db:seed": "bun --cwd apps/backend prisma db seed",
+    "db:studio": "bun --cwd apps/backend prisma studio"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
