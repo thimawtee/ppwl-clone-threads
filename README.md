@@ -1,6 +1,6 @@
 # 🧵 Threads Clone - PPWL Kelompok 2
 
-Project akhir mata kuliah **Pemrograman Perangkat Web Lanjut (PPWL)** berupa implementasi aplikasi sosial media sederhana berbasis **Threads Clone**.
+Project akhir mata kuliah **Pemrograman Perangkat Web Lanjut (PPWL)** berupa implementasi aplikasi sosial media berbasis **Threads Clone**.
 
 ---
 
