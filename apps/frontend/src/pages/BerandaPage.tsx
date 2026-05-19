@@ -100,10 +100,12 @@ function PostCard({
   post,
   isLoggedIn,
   onLoginRequired,
+  onCommentClick, // 👈 Ditambahkan untuk menangkap aksi klik komentar
 }: {
   post: Post;
   isLoggedIn: boolean;
   onLoginRequired: () => void;
+  onCommentClick: () => void; // 👈 Tipe data fungsi klik komentar
 }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likeCount);
@@ -130,7 +132,10 @@ function PostCard({
   }
 
   return (
-    <article className="px-5 py-3.5 border-b border-[#1e1e1e] hover:bg-[#0a0a0a] transition-colors duration-150">
+    <article 
+      onClick={onCommentClick} // Klik di area card mana saja juga akan membuka detail
+      className="px-5 py-3.5 border-b border-[#1e1e1e] hover:bg-[#0a0a0a] transition-colors duration-150 cursor-pointer"
+    >
       <div className="flex gap-3.5">
         {/* Left: avatar + thread line */}
         <div className="flex flex-col items-center flex-shrink-0">
@@ -154,7 +159,10 @@ function PostCard({
               </span>
               <div className="relative" ref={menuRef}>
                 <button
-                  onClick={() => setShowMenu((v) => !v)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Mencegah terbukanya detail saat klik titik tiga
+                    setShowMenu((v) => !v);
+                  }}
                   className="p-1 rounded-full text-[#666] hover:text-white hover:bg-[#2a2a2a] transition-colors"
                 >
                   <MoreHorizontal size={18} />
@@ -193,7 +201,10 @@ function PostCard({
           {/* Actions */}
           <div className="flex items-center gap-3 mt-2 -ml-1">
             <button
-              onClick={handleLike}
+              onClick={(e) => {
+                e.stopPropagation(); // Mencegah masuk ke detail thread saat nge-like
+                handleLike();
+              }}
               className={`flex items-center gap-1 p-1 rounded-full text-sm transition-colors ${
                 liked
                   ? "text-rose-500"
@@ -206,8 +217,12 @@ function PostCard({
               )}
             </button>
 
+            {/* Tombol Balon Komentar Baru 💬 */}
             <button
-              onClick={!isLoggedIn ? onLoginRequired : undefined}
+              onClick={(e) => {
+                e.stopPropagation(); // Stop propagation agar tidak bentrok
+                onCommentClick();    // Picu fungsi buka detail thread
+              }}
               className="flex items-center gap-1 p-1 rounded-full text-sm text-[#666] hover:text-white hover:bg-[#1e1e1e] transition-colors"
             >
               <MessageCircle size={18} />
@@ -217,14 +232,14 @@ function PostCard({
             </button>
 
             <button
-              onClick={!isLoggedIn ? onLoginRequired : undefined}
+              onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-1 p-1 rounded-full text-sm text-[#666] hover:text-white hover:bg-[#1e1e1e] transition-colors"
             >
               <Repeat2 size={18} />
             </button>
 
             <button
-              onClick={!isLoggedIn ? onLoginRequired : undefined}
+              onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-1 p-1 rounded-full text-sm text-[#666] hover:text-white hover:bg-[#1e1e1e] transition-colors"
             >
               <Send size={18} />
@@ -373,7 +388,7 @@ function DesktopSidebar({
   ];
 
   return (
-    <nav className="hidden lg:flex flex-col w-[260px] px-3 py-6 sticky top-0 h-screen border-r border-[#1e1e1e] sticky top-0 h-screen">
+    <nav className="hidden lg:flex flex-col w-[260px] px-3 py-6 sticky top-0 h-screen border-r border-[#1e1e1e]">
       {/* Threads logo */}
       <div className="mb-8">
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -400,7 +415,6 @@ function DesktopSidebar({
             ) : (
               <Icon size={22} />
             )}
-
             <span className="text-[15px] font-medium"></span>
           </button>
         ))}
@@ -610,7 +624,12 @@ function LoginModal({
 
 // ─── Main Beranda Page ────────────────────────────────────────────────────────
 
-export default function BerandaPage() {
+// Ditambahkan prop onSelectThread agar bisa berkomunikasi dengan App.tsx 🔗
+export default function BerandaPage({ 
+  onSelectThread 
+}: { 
+  onSelectThread: (post: Post) => void 
+}) {
   const BACKEND_URL =
     import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 
@@ -696,7 +715,6 @@ export default function BerandaPage() {
     });
     const data = await res.json();
     if (data.success) {
-      // Prepend new post to feed
       const newPost: Post = {
         ...data.data,
         likeCount: 0,
@@ -706,7 +724,6 @@ export default function BerandaPage() {
     }
   }
 
-  // Pull-to-refresh simulation
   const [refreshing, setRefreshing] = useState(false);
   async function handleRefresh() {
     setRefreshing(true);
@@ -716,7 +733,6 @@ export default function BerandaPage() {
 
   return (
     <div className="min-h-screen bg-[#101010] text-white font-sans">
-      {/* ── Desktop layout ─────────────────────────────────────────────── */}
       <div className="flex min-h-screen max-w-[1280px] mx-auto">
         {/* Left sidebar (desktop) */}
         <DesktopSidebar
@@ -838,15 +854,15 @@ export default function BerandaPage() {
                   post={post}
                   isLoggedIn={!!currentUser}
                   onLoginRequired={() => setShowLogin(true)}
+                  onCommentClick={() => onSelectThread(post)} // 👈 Mengirim post data ke induk saat logo diklik
                 />
               ))}
-              {/* Bottom padding for mobile nav */}
               <div className="h-20 lg:h-6" />
             </div>
           )}
         </main>
 
-        {/* Right sidebar (desktop only) */}
+        {/* Right sidebar */}
         <aside className="hidden xl:flex flex-col w-[360px] flex-shrink-0 py-6 px-6 sticky top-0 h-screen overflow-y-auto">
           {!currentUser ? (
             <LoginPromptCard onLogin={() => setShowLogin(true)} />
