@@ -22,5 +22,8 @@
     "dotenv": "^17.4.2",
     "prisma": "6",
     "typescript": "latest"
-  }
+  },
+  "prisma": {
+  "seed": "bun prisma/seed.ts"
+}
 }
