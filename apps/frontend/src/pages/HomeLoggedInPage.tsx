@@ -3,6 +3,7 @@ import { API_URL } from "../services/api";
 import LoggedInSidebar from "../components/loggedin/LoggedInSidebar";
 import FeedComposer from "../components/loggedin/FeedComposer";
 import FeedPost from "../components/loggedin/FeedPost";
+import { useAuthStore } from "@/stores/auth.store";
 
 interface PostUser {
   id: string;
@@ -26,10 +27,10 @@ export default function HomeLoggedInPage() {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
-  const token = localStorage.getItem("token");
-  const user = localStorage.getItem("user");
 
   if (!token || !user) {
     window.location.href = "/login";
@@ -69,7 +70,7 @@ export default function HomeLoggedInPage() {
           </div>
 
           {/* Composer */}
-          <div className="mx-6 border border-[#262626] rounded-[28px] overflow-hidden">
+        <div className="mx-2 md:mx-6 border border-[#262626] rounded-[20px] md:rounded-[28px] overflow-hidden mb-24">
             <FeedComposer />
 
             {/* Posts */}
@@ -89,7 +90,7 @@ export default function HomeLoggedInPage() {
         </div>
       </main>
             {/* Floating Create Button */}
-      <button className="fixed bottom-6 right-6 w-16 h-16 rounded-3xl border border-[#2a2a2a] bg-[#111] hover:bg-[#1a1a1a] transition-colors flex items-center justify-center shadow-2xl">
+      <button className="hidden md:flex fixed bottom-6 right-6 w-16 h-16 rounded-3xl border border-[#2a2a2a] bg-[#111] hover:bg-[#1a1a1a] transition-colors items-center justify-center shadow-2xl">
         <span className="text-4xl font-light leading-none -mt-1">
           +
         </span>

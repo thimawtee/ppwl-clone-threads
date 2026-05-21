@@ -3,6 +3,7 @@ import logoInstagram from "../assets/images/logo-instagram.png";
 import CreatePostModal from "../components/CreatePostModal";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../services/api";
+import ThreadDetail from "../components/ThreadDetail";
 
 import {
   Heart,
@@ -10,8 +11,6 @@ import {
   Repeat2,
   Send,
   MoreHorizontal,
-  Image,
-  X,
   Loader2,
 } from "lucide-react";
 
@@ -139,10 +138,12 @@ function PostCard({
   post,
   isLoggedIn,
   onLoginRequired,
+  onCommentClick,
 }: {
   post: Post;
   isLoggedIn: boolean;
   onLoginRequired: () => void;
+  onCommentClick: () => void;
 }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likeCount);
@@ -158,7 +159,6 @@ function PostCard({
     }
 
     document.addEventListener("mousedown", handler);
-
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
@@ -239,7 +239,10 @@ function PostCard({
               {likeCount > 0 && <span className="text-xs">{likeCount}</span>}
             </button>
 
-            <button className="text-[#666] hover:text-white">
+            <button
+              onClick={onCommentClick}
+              className="text-[#666] hover:text-white"
+            >
               <MessageCircle size={18} />
             </button>
 
@@ -266,10 +269,8 @@ export default function BerandaPage() {
   const [loading, setLoading] = useState(true);
   const [activePage, setActivePage] = useState("home");
   const navigate = useNavigate();
-
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [currentUser, setCurrentUser] = useState<PostUser | null>(null);
-
-  const [showLogin, setShowLogin] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
@@ -297,6 +298,17 @@ export default function BerandaPage() {
     fetchPosts();
   }, []);
 
+if (selectedPost) {
+  return (
+    <ThreadDetail
+      post={selectedPost}
+      onBack={() => setSelectedPost(null)}
+      isLoggedIn={!!currentUser}
+      onLoginRequired={() => navigate("/login")}
+    />
+  );
+}
+  
   return (
     <div className="min-h-screen bg-[#101010] text-white">
       <div className="flex min-h-screen max-w-[1280px] mx-auto">
@@ -331,6 +343,7 @@ export default function BerandaPage() {
                 post={post}
                 isLoggedIn={!!currentUser}
                 onLoginRequired={() => navigate("/home")}
+                onCommentClick={() => setSelectedPost(post)}
               />
             ))
           )}

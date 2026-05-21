@@ -6,7 +6,8 @@
     "strict": true,
     "baseUrl": ".",
     "paths": {
-      "@threads/shared": ["packages/shared/src"]
+      "@ppwl/shared": ["packages/shared/src/index.ts"],
+      "@ppwl/shared/*": ["packages/shared/src/*"]
     }
   }
 }
