@@ -1,12 +1,26 @@
 import app from "./app";
 
 export const handler = async (event: any) => {
+  const method =
+    event.requestContext?.http?.method ||
+    event.httpMethod ||
+    "GET";
+
+  const path =
+    event.rawPath ||
+    event.path ||
+    "/";
+
+  const queryString = event.rawQueryString
+    ? `?${event.rawQueryString}`
+    : "";
+
   const request = new Request(
-    `https://${event.requestContext.domainName}${event.rawPath}`,
+    `https://${event.requestContext.domainName}${path}${queryString}`,
     {
-      method: event.requestContext.http.method,
+      method,
       headers: event.headers,
-      body: event.requestContext.http.method !== "GET" ? event.body : undefined,
+      body: method !== "GET" && method !== "HEAD" ? event.body : undefined,
     }
   );
 

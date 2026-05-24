@@ -1,35 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from "sonner";
+import NotificationPage from "./pages/NotificationPage";
 import BerandaPage from "./pages/BerandaPage";
 import HomeLoggedInPage from "./pages/HomeLoggedInPage";
-import NotificationSystem from "./components/NotificationSystem";
-
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import BerandaPage from "./pages/BerandaPage"
-import LoginPage from "./pages/LoginPage"
-import RegisterPage from "./pages/RegisterPage"
-import HomeLoggedInPage from "./pages/HomeLoggedInPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import DetailPostPage from "./pages/DetailPostPage";
 import ProfilePage from "./pages/ProfilePage";
-import ThreadDetailPage from "./components/threaddetail"; 
+import { Toaster } from "sonner";
+import NotificationSystem from "./components/NotificationSystem";
 
 export default function App() {
   return (
     <BrowserRouter>
+      <Toaster richColors position="top-right" />
       <NotificationSystem />
-      <Toaster
-        theme="dark"
-        position="top-center"
-        richColors
-        toastOptions={{
-          style: {
-            background: "#1a1a1a",
-            border: "1px solid #2a2a2a",
-            color: "#fff",
-            borderRadius: "16px",
-            fontFamily: "'Inter Variable', sans-serif",
-          },
-        }}
-      />
       <Routes>
         <Route path="/" element={<BerandaPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -38,6 +22,15 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/posts/:id" element={<ThreadDetailPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route path="/activity" element={<NotificationPage />} />
+        <Route path="/notifications" element={<NotificationPage />} />
+
+        <Route path="/register" element={<RegisterPage />} />
+
+        <Route path="/post/:id" element={<DetailPostPage />} />
+
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
   )

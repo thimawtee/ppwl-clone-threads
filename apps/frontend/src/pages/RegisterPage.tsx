@@ -1,89 +1,128 @@
-import { useState } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import axios from "axios"
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import { API_URL } from "../services/api";
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({ name: "", username: "", email: "", password: "" })
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value })
+  const [form, setForm] = useState({
+    name: "",
+    username: "",
+    email: "",
+    password: "",
+  });
+
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
   }
 
-  const handleRegister = async () => {
-    setLoading(true)
-    setError("")
+  async function handleRegister() {
+    setLoading(true);
+    setError("");
+
     try {
-      await axios.post(
-        `${import.meta.env.VITE_BACKEND_URL}/auth/register`,
-        form
-      )
-      navigate("/login")
+      const res = await axios.post(`${API_URL}/auth/register`, form);
+
+      if (!res.data.success) {
+        throw new Error(res.data.message || "Registrasi gagal");
+      }
+
+      navigate("/login");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Registrasi gagal")
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Registrasi gagal"
+      );
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter") handleRegister();
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: "#101010" }}>
-      <div className="w-full max-w-sm p-8 rounded-2xl" style={{ backgroundColor: "#1a1a1a", border: "1px solid #2d2d2d" }}>
-        
-        {/* Logo */}
+    <div className="min-h-screen bg-[#101010] text-white flex items-center justify-center px-4">
+      <div className="w-full max-w-sm bg-[#1a1a1a] border border-[#2d2d2d] rounded-2xl p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold" style={{ color: "#f5f5f5" }}>Threads</h1>
-          <p className="mt-2 text-sm" style={{ color: "#a0a0a0" }}>Buat akun baru</p>
+          <h1 className="text-3xl font-bold">Threads</h1>
+          <p className="mt-2 text-sm text-[#a0a0a0]">
+            Buat akun baru
+          </p>
         </div>
 
-        {/* Error */}
         {error && (
-          <div className="mb-4 p-3 rounded-lg text-sm text-red-400" style={{ backgroundColor: "#2d1a1a" }}>
+          <div className="mb-4 p-3 rounded-lg text-sm text-red-400 bg-red-500/10 border border-red-500/20">
             {error}
           </div>
         )}
 
-        {/* Form */}
         <div className="space-y-3">
-          {[
-            { name: "name", placeholder: "Nama lengkap", type: "text" },
-            { name: "username", placeholder: "Username", type: "text" },
-            { name: "email", placeholder: "Email", type: "email" },
-            { name: "password", placeholder: "Password", type: "password" },
-          ].map((field) => (
-            <input
-              key={field.name}
-              type={field.type}
-              name={field.name}
-              placeholder={field.placeholder}
-              value={form[field.name as keyof typeof form]}
-              onChange={handleChange}
-              className="w-full px-4 py-3 rounded-xl text-sm outline-none"
-              style={{ backgroundColor: "#242424", color: "#f5f5f5", border: "1px solid #2d2d2d" }}
-            />
-          ))}
+          <input
+            type="text"
+            name="name"
+            placeholder="Nama lengkap"
+            value={form.name}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-[#242424] text-white border border-[#2d2d2d]"
+          />
+
+          <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            value={form.username}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-[#242424] text-white border border-[#2d2d2d]"
+          />
+
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={form.email}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-[#242424] text-white border border-[#2d2d2d]"
+          />
+
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={form.password}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-[#242424] text-white border border-[#2d2d2d]"
+          />
         </div>
 
-        {/* Tombol Register */}
         <button
           onClick={handleRegister}
           disabled={loading}
-          className="w-full mt-4 py-3 rounded-xl font-semibold text-sm"
-          style={{ backgroundColor: "#ffffff", color: "#101010" }}
+          className="w-full mt-4 py-3 rounded-xl font-semibold text-sm bg-white text-black disabled:opacity-60"
         >
           {loading ? "Memuat..." : "Daftar"}
         </button>
 
-        {/* Link Login */}
-        <p className="text-center text-sm mt-6" style={{ color: "#a0a0a0" }}>
+        <p className="text-center text-sm mt-6 text-[#a0a0a0]">
           Sudah punya akun?{" "}
-          <Link to="/login" style={{ color: "#ffffff" }} className="font-semibold">
+          <Link to="/login" className="text-white font-semibold">
             Masuk
           </Link>
         </p>
       </div>
     </div>
-  )
+  );
 }

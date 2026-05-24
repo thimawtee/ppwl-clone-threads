@@ -1,40 +1,23 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-interface PostUser {
+type User = {
   id: string;
   name: string;
   username: string;
-  avatarUrl: string | null;
-}
-
-interface AuthState {
-  user: PostUser | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  setAuth: (user: PostUser, token: string) => void;
-  logout: () => void;
-}
-
-export const useAuthStore = create<AuthState>()(
-import { create } from "zustand"
-import { persist } from "zustand/middleware"
-
-type User = {
-  id: string
-  name: string
-  username: string
-  email: string
-  avatarUrl?: string
-}
+  email: string;
+  avatarUrl?: string | null;
+  provider?: "EMAIL" | "GOOGLE";
+};
 
 type AuthStore = {
-  user: User | null
-  token: string | null
-  isAuthenticated: boolean
-  setAuth: (user: User, token: string) => void
-  logout: () => void
-}
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+
+  setAuth: (user: User, token: string) => void;
+  logout: () => void;
+};
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -58,17 +41,7 @@ export const useAuthStore = create<AuthStore>()(
         }),
     }),
     {
-      name: 'threads-auth-storage', // name of the item in the storage (must be unique)
-      // sessionStorage is used by default for persist middleware if not specified,
-      // but to be explicit we can use sessionStorage.
-      // We will stick to the default which is localStorage, as it allows persistence
-      // across tabs which is better for user experience.
+      name: "threads-auth-storage",
     }
   )
 );
-      setAuth: (user, token) => set({ user, token, isAuthenticated: true }),
-      logout: () => set({ user: null, token: null, isAuthenticated: false }),
-    }),
-    { name: "auth-storage" }
-  )
-)

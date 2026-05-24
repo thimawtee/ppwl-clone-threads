@@ -135,6 +135,75 @@ const app = new Elysia()
   };
 })
 
+  .post("/auth/google", async ({ body }) => {
+  try {
+    const { name, email, avatarUrl } = body as {
+      name: string;
+      email: string;
+      avatarUrl?: string;
+    };
+
+    if (!email) {
+      return {
+        success: false,
+        message: "Email Google tidak ditemukan",
+      };
+    }
+
+    let user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    // Kalau user belum ada → create user baru
+    if (!user) {
+      const username =
+        email.split("@")[0] +
+        Math.floor(Math.random() * 1000);
+
+      user = await prisma.user.create({
+        data: {
+          name: name || "Google User",
+          email,
+          username,
+          avatarUrl: avatarUrl || null,
+          provider: "GOOGLE",
+        },
+      });
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        email: user.email,
+        role: "USER",
+      },
+      process.env.JWT_SECRET || "secret-uas-ppwl",
+      {
+        expiresIn: "7d",
+      }
+    );
+
+    return {
+      success: true,
+      message: "Google login berhasil",
+      data: {
+        token,
+        user,
+      },
+    };
+  } catch (error) {
+    console.error(error);
+
+    return {
+      success: false,
+      message: "Google login gagal",
+    };
+  }
+})
+
   .get("/auth/me", async ({ headers }) => {
   const authHeader = headers.authorization;
 
@@ -456,6 +525,19 @@ const app = new Elysia()
       };
     }
 
+const commentCount = await prisma.comment.count({
+  where: {
+    userId: decoded.userId,
+  },
+});
+
+if (commentCount >= 5) {
+  return {
+    success: false,
+    message: "Setiap user hanya boleh membuat maksimal 5 komentar",
+  };
+}
+
     const post = await prisma.post.findUnique({
       where: {
         id: postId,
@@ -676,12 +758,37 @@ const app = new Elysia()
       imageUrl?: string;
     };
 
+    const videoExtensions = [".mp4", ".mov", ".avi", ".mkv", ".webm"];
+
+if (
+  imageUrl &&
+  videoExtensions.some((ext) => imageUrl.toLowerCase().includes(ext))
+) {
+  return {
+    success: false,
+    message: "Upload video tidak diperbolehkan",
+  };
+}
+
     if (!content) {
       return {
         success: false,
         message: "Content wajib diisi",
       };
     }
+
+    const postCount = await prisma.post.count({
+  where: {
+    userId: decoded.userId,
+  },
+});
+
+if (postCount >= 2) {
+  return {
+    success: false,
+    message: "Setiap user hanya boleh membuat maksimal 2 postingan",
+  };
+}
 
     const post = await prisma.post.create({
       data: {
@@ -710,6 +817,162 @@ const app = new Elysia()
     return {
       success: false,
       message: "Token tidak valid",
+    };
+  }
+})
+  .put("/posts/:id", async ({ params, body, headers }) => {
+  const authHeader = headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return {
+      success: false,
+      message: "Unauthorized",
+    };
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded: any = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "secret-uas-ppwl"
+    );
+
+    const { content, imageUrl } = body as {
+      content?: string;
+      imageUrl?: string | null;
+    };
+
+    if (!content && imageUrl === undefined) {
+      return {
+        success: false,
+        message: "Tidak ada data yang diperbarui",
+      };
+    }
+
+    const post = await prisma.post.findUnique({
+      where: {
+        id: params.id,
+      },
+    });
+
+    if (!post) {
+      return {
+        success: false,
+        message: "Postingan tidak ditemukan",
+      };
+    }
+
+    if (post.userId !== decoded.userId) {
+      return {
+        success: false,
+        message: "Anda tidak punya akses untuk mengubah postingan ini",
+      };
+    }
+
+    const updatedPost = await prisma.post.update({
+      where: {
+        id: params.id,
+      },
+      data: {
+        ...(content !== undefined && { content }),
+        ...(imageUrl !== undefined && { imageUrl }),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
+
+    return {
+      success: true,
+      message: "Postingan berhasil diperbarui",
+      data: updatedPost,
+    };
+  } catch {
+    return {
+      success: false,
+      message: "Token tidak valid",
+    };
+  }
+})
+
+.delete("/posts/:id", async ({ params, headers }) => {
+  const authHeader = headers.authorization;
+
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return {
+      success: false,
+      message: "Unauthorized",
+    };
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded: any = jwt.verify(
+      token,
+      process.env.JWT_SECRET || "secret-uas-ppwl"
+    );
+
+    const post = await prisma.post.findUnique({
+      where: {
+        id: params.id,
+      },
+    });
+
+    if (!post) {
+      return {
+        success: false,
+        message: "Postingan tidak ditemukan",
+      };
+    }
+
+    if (post.userId !== decoded.userId) {
+      return {
+        success: false,
+        message: "Anda tidak punya akses untuk menghapus postingan ini",
+      };
+    }
+
+    await prisma.notification.deleteMany({
+      where: {
+        postId: params.id,
+      },
+    });
+
+    await prisma.comment.deleteMany({
+      where: {
+        postId: params.id,
+      },
+    });
+
+    await prisma.postLike.deleteMany({
+      where: {
+        postId: params.id,
+      },
+    });
+
+    await prisma.post.delete({
+      where: {
+        id: params.id,
+      },
+    });
+
+    return {
+      success: true,
+      message: "Postingan berhasil dihapus",
+    };
+  } catch {
+    return {
+      success: false,
+      message: "Token tidak valid atau gagal menghapus postingan",
     };
   }
 })

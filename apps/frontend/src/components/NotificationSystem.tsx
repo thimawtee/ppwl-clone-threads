@@ -1,52 +1,36 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { useAuthStore } from "../stores/auth.store";
+import { API_URL } from "@/services/api";
 
 export default function NotificationSystem() {
   const currentUser = useAuthStore((state) => state.user);
 
   useEffect(() => {
-    // Jangan connect kalau belum login
     if (!currentUser) return;
 
     const ws = new WebSocket(
-      `ws://localhost:3001/ws/notifications?userId=${currentUser.id}`
+      `ws:${API_URL}/ws/notifications?userId=${currentUser.id}`
     );
 
-    ws.onopen = () => {
-      console.log("WS CONNECTED");
-
-      toast.success("🔔 WebSocket Connected");
-    };
-
     ws.onmessage = (event) => {
-      console.log("MESSAGE:", event.data);
-
       try {
         const data = JSON.parse(event.data);
 
-        let message = "📢 Notifikasi baru";
-
         if (data.type === "LIKE") {
-          message = "❤️ Seseorang menyukai postingan Anda!";
+          toast.success("❤️ Seseorang menyukai postingan Anda!");
+        } else if (data.type === "COMMENT") {
+          toast.success("💬 Seseorang mengomentari postingan Anda!");
+        } else {
+          toast.success("🔔 Notifikasi baru");
         }
-
-        if (data.type === "COMMENT") {
-          message = "💬 Seseorang mengomentari postingan Anda!";
-        }
-
-        toast.success(message);
       } catch (error) {
-        console.error("JSON ERROR:", error);
+        console.error("Gagal membaca notifikasi:", error);
       }
     };
 
-    ws.onerror = (error) => {
-      console.error("WS ERROR:", error);
-    };
-
-    ws.onclose = () => {
-      console.log("WS CLOSED");
+    ws.onerror = () => {
+      console.error("WebSocket error");
     };
 
     return () => {
