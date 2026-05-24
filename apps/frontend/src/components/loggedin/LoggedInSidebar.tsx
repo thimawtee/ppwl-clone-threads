@@ -9,8 +9,11 @@ import {
   Bookmark,
   Menu,
 } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 export default function LoggedInSidebar() {
+  const location = useLocation();
+
   return (
     <aside className="hidden lg:flex flex-col w-[260px] px-5 py-6 border-r border-[#1f1f1f]">
       {/* Logo */}
@@ -20,10 +23,17 @@ export default function LoggedInSidebar() {
 
       {/* Menu */}
       <nav className="space-y-1">
-        <button className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl bg-[#1f1f1f] text-white font-medium">
+        <Link
+          to="/home"
+          className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${
+            location.pathname === "/home"
+              ? "bg-[#1f1f1f] text-white font-medium"
+              : "hover:bg-[#111]"
+          }`}
+        >
           <Home size={22} />
           For you
-        </button>
+        </Link>
 
         <button className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-[#111] transition-colors">
           <Plus size={22} />
@@ -45,10 +55,17 @@ export default function LoggedInSidebar() {
           Activity
         </button>
 
-        <button className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-[#111] transition-colors">
+        <Link
+          to="/profile"
+          className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${
+            location.pathname === "/profile"
+              ? "bg-[#1f1f1f] text-white font-medium"
+              : "hover:bg-[#111]"
+          }`}
+        >
           <User size={22} />
           Profile
-        </button>
+        </Link>
 
         <button className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-[#111] transition-colors">
           <BarChart3 size={22} />

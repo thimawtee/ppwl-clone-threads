@@ -1,4 +1,4 @@
-import logoInstagram from "../assets/images/logo-instagram.png";
+import logoInstagram from "../assets/images/logo-Instagram.png";
 import { X, PenSquare, ChevronRight } from "lucide-react";
 
 interface Props {

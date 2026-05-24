@@ -16,11 +16,11 @@ export default function App() {
       <NotificationSystem />
       <Routes>
         <Route path="/" element={<BerandaPage />} />
-
         <Route path="/login" element={<LoginPage />} />
-
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/home" element={<HomeLoggedInPage />} />
-
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/posts/:id" element={<ThreadDetailPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
 
         <Route path="/activity" element={<NotificationPage />} />
@@ -33,5 +33,5 @@ export default function App() {
         <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </BrowserRouter>
-  );
+  )
 }

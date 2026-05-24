@@ -13,10 +13,7 @@ import {
   MoreHorizontal,
   Loader2,
 } from "lucide-react";
-
 import { DesktopSidebar, MobileBottomNav } from "../components/Sidebar";
-
-// ─── Types ─────────────────────────────────────────────────────────────
 
 interface PostUser {
   id: string;
@@ -274,19 +271,18 @@ export default function BerandaPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
-  const savedUser = localStorage.getItem("user");
+    const savedUser = localStorage.getItem("user");
 
-  if (savedUser) {
-    setCurrentUser(JSON.parse(savedUser));
-  }
-}, []);
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchPosts() {
       try {
         const res = await fetch(`${BACKEND_URL}/posts`);
         const data = await res.json();
-
         if (data.success) {
           setPosts(data.data);
         }
@@ -294,7 +290,6 @@ export default function BerandaPage() {
         setLoading(false);
       }
     }
-
     fetchPosts();
   }, []);
 
@@ -321,7 +316,6 @@ if (selectedPost) {
               setShowCreateModal(true);
               return;
             }
-
             setActivePage(page);
           }}
         />
@@ -380,10 +374,10 @@ if (selectedPost) {
             setShowCreateModal(true);
             return;
           }
-
           setActivePage(page);
         }}
       />
+
       <CreatePostModal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}

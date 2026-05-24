@@ -1,3 +1,4 @@
+export const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
 export const API_URL =
   "https://txwzcdqudtzycstlynaqilfjcy0cyutr.lambda-url.us-east-1.on.aws";
 

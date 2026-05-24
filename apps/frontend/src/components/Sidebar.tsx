@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import logoThreads from "../assets/images/logo-threads-no-login.png";
 import {
   Search,
@@ -46,7 +47,7 @@ function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
 
   return (
     <div
-      className="relative flex-shrink-0 rounded-full overflow-hidden"
+      className="relative shrink-0 rounded-full overflow-hidden"
       style={{ width: size, height: size }}
     >
       {user.avatarUrl ? (
@@ -68,26 +69,27 @@ function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
 }
 
 // ─── Desktop Sidebar ───────────────────────────────────────────────────
+interface SidebarProps {
+  currentUser: PostUser | null;
+  activePage: string;
+  onNav: (page: string) => void;
+}
 
 export function DesktopSidebar({
   currentUser,
   activePage,
   onNav,
-}: {
-  currentUser: PostUser | null;
-  activePage: string;
-  onNav: (page: string) => void;
-}) {
+}: SidebarProps) {
   const navItems = [
-    { id: "home", icon: Home },
-    { id: "search", icon: Search },
-    { id: "create", icon: PenSquare },
-    { id: "notifications", icon: Bell },
-    { id: "profile", icon: User },
+    { id: "home", path: "/home", icon: Home },
+    { id: "search", path: "/search", icon: Search },
+    { id: "create", path: "/create", icon: PenSquare },
+    { id: "notifications", path: "/notifications", icon: Bell },
+    { id: "profile", path: "/profile", icon: User },
   ];
 
   return (
-    <aside className="hidden lg:flex flex-col w-[76px] border-r border-[#1e1e1e] sticky top-0 h-screen">
+    <aside className="hidden lg:flex flex-col w-19 border-r border-[#1e1e1e] sticky top-0 h-screen bg-black">
       {/* Logo */}
       <div className="pl-5 pt-6 pb-8">
         <img
@@ -99,23 +101,41 @@ export function DesktopSidebar({
 
       {/* Nav */}
       <div className="flex flex-col gap-2 px-3">
-        {navItems.map(({ id, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => onNav(id)}
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200 ${
-              activePage === id
-                ? "bg-[#1f1f1f] text-white"
-                : "text-[#d0d0d0] hover:bg-[#151515] hover:text-white"
-            }`}
-          >
-            {id === "profile" && currentUser ? (
-              <Avatar user={currentUser} size={30} />
-            ) : (
-              <Icon size={30} strokeWidth={2.2} />
-            )}
-          </button>
-        ))}
+        {navItems.map(({ id, path, icon: Icon }) => {
+          const isActive = activePage === id;
+          const itemClass = `w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200 ${
+            isActive
+              ? "bg-[#1f1f1f] text-white"
+              : "text-[#d0d0d0] hover:bg-[#151515] hover:text-white"
+          }`;
+
+          if (id === "create") {
+            return (
+              <button key={id} onClick={() => onNav(id)} className={itemClass}>
+                <Icon size={30} strokeWidth={2.2} />
+              </button>
+            );
+          }
+
+          return (
+            <Link
+              key={id}
+              to={path}
+              onClick={() => onNav(id)}
+              className={itemClass}
+            >
+              {id === "profile" && currentUser ? (
+                <div
+                  className={`rounded-full overflow-hidden ${isActive ? "ring-2 ring-white" : ""}`}
+                >
+                  <Avatar user={currentUser} size={28} />
+                </div>
+              ) : (
+                <Icon size={30} strokeWidth={2.2} />
+              )}
+            </Link>
+          );
+        })}
       </div>
 
       {/* Bottom */}
@@ -129,47 +149,54 @@ export function DesktopSidebar({
 }
 
 // ─── Mobile Bottom Nav ─────────────────────────────────────────────────
-
 export function MobileBottomNav({
   currentUser,
   activePage,
   onNav,
-}: {
-  currentUser: PostUser | null;
-  activePage: string;
-  onNav: (page: string) => void;
-}) {
+}: SidebarProps) {
   const navItems = [
-    { id: "home", icon: Home },
-    { id: "search", icon: Search },
-    { id: "create", icon: PenSquare },
-    { id: "notifications", icon: Bell },
-    { id: "profile", icon: User },
+    { id: "home", path: "/home", icon: Home },
+    { id: "search", path: "/search", icon: Search },
+    { id: "create", path: "/create", icon: PenSquare },
+    { id: "notifications", path: "/notifications", icon: Bell },
+    { id: "profile", path: "/profile", icon: User },
   ];
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#101010]/90 backdrop-blur-xl border-t border-[#1e1e1e] flex items-center justify-around px-2 py-2 safe-area-pb">
-      {navItems.map(({ id, icon: Icon }) => (
-        <button
-          key={id}
-          onClick={() => onNav(id)}
-          className={`flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-colors ${
-            activePage === id ? "text-white" : "text-[#555] hover:text-[#aaa]"
-          }`}
-        >
-          {id === "profile" && currentUser ? (
-            <div
-              className={`rounded-full overflow-hidden ${
-                activePage === id ? "ring-2 ring-white" : ""
-              }`}
-            >
-              <Avatar user={currentUser} size={24} />
-            </div>
-          ) : (
-            <Icon size={24} strokeWidth={activePage === id ? 2.5 : 1.8} />
-          )}
-        </button>
-      ))}
+      {navItems.map(({ id, path, icon: Icon }) => {
+        const isActive = activePage === id;
+        const itemClass = `flex flex-col items-center justify-center w-12 h-12 rounded-xl transition-colors ${
+          isActive ? "text-white" : "text-[#555] hover:text-[#aaa]"
+        }`;
+
+        if (id === "create") {
+          return (
+            <button key={id} onClick={() => onNav(id)} className={itemClass}>
+              <Icon size={24} strokeWidth={isActive ? 2.5 : 1.8} />
+            </button>
+          );
+        }
+
+        return (
+          <Link
+            key={id}
+            to={path}
+            onClick={() => onNav(id)}
+            className={itemClass}
+          >
+            {id === "profile" && currentUser ? (
+              <div
+                className={`rounded-full overflow-hidden ${isActive ? "ring-2 ring-white" : ""}`}
+              >
+                <Avatar user={currentUser} size={24} />
+              </div>
+            ) : (
+              <Icon size={24} strokeWidth={isActive ? 2.5 : 1.8} />
+            )}
+          </Link>
+        );
+      })}
     </nav>
   );
 }
