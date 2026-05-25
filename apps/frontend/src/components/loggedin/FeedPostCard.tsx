@@ -50,15 +50,20 @@ export default function FeedPostCard({
       <div className="flex gap-3">
         {/* Avatar */}
         <div className="w-10 flex flex-col items-center">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-[#222]">
-            {post.user.avatarUrl && (
-              <img
-                src={post.user.avatarUrl}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            )}
-          </div>
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-400 to-green-300 flex items-center justify-center text-white font-bold">
+  {post.user.avatarUrl ? (
+    <img
+      src={post.user.avatarUrl}
+      alt={post.user.name}
+      className="w-full h-full object-cover"
+      onError={(e) => {
+        e.currentTarget.style.display = "none";
+      }}
+    />
+  ) : (
+    post.user.name?.charAt(0).toUpperCase()
+  )}
+</div>
 
           <div className="w-px flex-1 bg-[#222] mt-2" />
         </div>

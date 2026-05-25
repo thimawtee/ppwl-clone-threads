@@ -1,18 +1,18 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect} from "react";
 import logoInstagram from "../assets/images/logo-instagram.png";
 import CreatePostModal from "../components/CreatePostModal";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../services/api";
 import ThreadDetail from "../components/ThreadDetail";
+import { useAuthStore } from "../stores/auth.store";
+import { toast } from "sonner";
 
 import {
   Heart,
   MessageCircle,
-  Repeat2,
-  Send,
-  MoreHorizontal,
   Loader2,
 } from "lucide-react";
+
 import { DesktopSidebar, MobileBottomNav } from "../components/Sidebar";
 
 interface PostUser {
@@ -30,9 +30,8 @@ interface Post {
   user: PostUser;
   likeCount: number;
   commentCount: number;
+  comments?: any[];
 }
-
-// ─── Helpers ───────────────────────────────────────────────────────────
 
 function timeAgo(dateStr: string): string {
   const now = Date.now();
@@ -54,8 +53,6 @@ function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2);
 }
-
-// ─── Avatar ────────────────────────────────────────────────────────────
 
 function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
   const colors = [
@@ -80,6 +77,9 @@ function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
         <img
           src={user.avatarUrl}
           alt={user.name}
+          onError={(e) => {
+            e.currentTarget.style.display = "none";
+          }}
           className="w-full h-full object-cover"
         />
       ) : (
@@ -93,8 +93,6 @@ function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
     </div>
   );
 }
-
-// ─── Login Prompt Card ─────────────────────────────────────────────────
 
 function LoginPromptCard({ onLogin }: { onLogin: () => void }) {
   return (
@@ -117,7 +115,7 @@ function LoginPromptCard({ onLogin }: { onLogin: () => void }) {
             alt="Instagram"
             className="w-5 h-5 object-contain"
           />
-          Continue with Instagram
+          Continue with Login
         </button>
       </div>
 
@@ -129,44 +127,46 @@ function LoginPromptCard({ onLogin }: { onLogin: () => void }) {
   );
 }
 
-// ─── Post Card ─────────────────────────────────────────────────────────
-
 function PostCard({
   post,
+  token,
   isLoggedIn,
   onLoginRequired,
   onCommentClick,
 }: {
   post: Post;
+  token: string | null;
   isLoggedIn: boolean;
   onLoginRequired: () => void;
   onCommentClick: () => void;
 }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likeCount);
-  const [showMenu, setShowMenu] = useState(false);
-
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowMenu(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  function handleLike() {
-    if (!isLoggedIn) {
+  async function handleLike() {
+    if (!isLoggedIn || !token) {
       onLoginRequired();
       return;
     }
 
-    setLiked((v) => !v);
-    setLikeCount((c) => (liked ? c - 1 : c + 1));
+    try {
+      const res = await fetch(`${API_URL}/posts/${post.id}/like`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const result = await res.json();
+
+      if (!result.success) {
+        throw new Error(result.message || "Gagal like postingan");
+      }
+
+      setLiked((prev) => !prev);
+      setLikeCount((count) => (liked ? count - 1 : count + 1));
+    } catch (error: any) {
+      toast.error(error.message || "Terjadi kesalahan saat like");
+    }
   }
 
   return (
@@ -187,27 +187,6 @@ function PostCard({
               <span className="text-[#777] text-sm">
                 {timeAgo(post.createdAt)}
               </span>
-
-              <div className="relative" ref={menuRef}>
-                <button
-                  onClick={() => setShowMenu((v) => !v)}
-                  className="p-1 rounded-full text-[#666] hover:text-white"
-                >
-                  <MoreHorizontal size={18} />
-                </button>
-
-                {showMenu && (
-                  <div className="absolute right-0 top-8 z-50 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl shadow-xl min-w-[160px] overflow-hidden">
-                    <button className="w-full text-left px-4 py-3 text-sm text-white hover:bg-[#2a2a2a]">
-                      Copy link
-                    </button>
-
-                    <button className="w-full text-left px-4 py-3 text-sm text-[#f44] hover:bg-[#2a2a2a]">
-                      Report
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
@@ -237,19 +216,14 @@ function PostCard({
             </button>
 
             <button
-              onClick={onCommentClick}
-              className="text-[#666] hover:text-white"
-            >
-              <MessageCircle size={18} />
-            </button>
-
-            <button className="text-[#666] hover:text-white">
-              <Repeat2 size={18} />
-            </button>
-
-            <button className="text-[#666] hover:text-white">
-              <Send size={18} />
-            </button>
+  onClick={onCommentClick}
+  className="flex items-center gap-1 p-1 rounded-full text-[#666] hover:text-white"
+>
+  <MessageCircle size={18} />
+  {post.commentCount > 0 && (
+    <span className="text-xs">{post.commentCount}</span>
+  )}
+</button>
           </div>
         </div>
       </div>
@@ -257,70 +231,87 @@ function PostCard({
   );
 }
 
-// ─── Main ──────────────────────────────────────────────────────────────
-
 export default function BerandaPage() {
-  const BACKEND_URL = API_URL;
-
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePage, setActivePage] = useState("home");
-  const navigate = useNavigate();
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [currentUser, setCurrentUser] = useState<PostUser | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
-  useEffect(() => {
-    const savedUser = localStorage.getItem("user");
+  const navigate = useNavigate();
 
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
-    }
-  }, []);
+  const currentUser = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
+
+  const isLoggedIn = !!currentUser && !!token;
 
   useEffect(() => {
-    async function fetchPosts() {
-      try {
-        const res = await fetch(`${BACKEND_URL}/posts`);
-        const data = await res.json();
-        if (data.success) {
-          setPosts(data.data);
-        }
-      } finally {
-        setLoading(false);
+  if (isLoggedIn) {
+    navigate("/home");
+  }
+}, [isLoggedIn, navigate]);
+
+  async function fetchPosts() {
+    try {
+      setLoading(true);
+
+      const res = await fetch(`${API_URL}/posts`);
+      const data = await res.json();
+
+      if (data.success) {
+        setPosts(data.data);
       }
+    } catch {
+      toast.error("Gagal mengambil data postingan");
+    } finally {
+      setLoading(false);
     }
+  }
+
+  useEffect(() => {
     fetchPosts();
   }, []);
 
-if (selectedPost) {
-  return (
-    <ThreadDetail
-      post={selectedPost}
-      onBack={() => setSelectedPost(null)}
-      isLoggedIn={!!currentUser}
-      onLoginRequired={() => navigate("/login")}
-    />
-  );
-}
-  
+  if (selectedPost) {
+    return (
+      <ThreadDetail
+        post={selectedPost}
+        onBack={() => setSelectedPost(null)}
+        isLoggedIn={isLoggedIn}
+        onLoginRequired={() => navigate("/login")}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#101010] text-white">
       <div className="flex min-h-screen max-w-[1280px] mx-auto">
-        {/* Sidebar */}
         <DesktopSidebar
-          currentUser={currentUser}
+          currentUser={
+  currentUser
+    ? { ...currentUser, avatarUrl: currentUser.avatarUrl ?? null }
+    : null
+}
           activePage={activePage}
           onNav={(page) => {
-            if (page === "create" && !currentUser) {
+            if (page === "home") navigate("/home");
+            if (page === "notifications") navigate("/notifications");
+            if (page === "login") navigate("/login");
+
+            if (page === "create") {
+              if (!isLoggedIn) {
+                navigate("/login");
+                return;
+              }
+
               setShowCreateModal(true);
               return;
             }
+
             setActivePage(page);
           }}
         />
 
-        {/* Main */}
         <main className="flex-1 min-w-0 lg:max-w-[680px] border-x border-[#1e1e1e]">
           <div className="hidden lg:flex items-center justify-center h-[60px] border-b border-[#1f1f1f] sticky top-0 bg-[#101010]/90 backdrop-blur-md z-30">
             <h1 className="text-[17px] font-semibold">Home</h1>
@@ -335,22 +326,25 @@ if (selectedPost) {
               <PostCard
                 key={post.id}
                 post={post}
-                isLoggedIn={!!currentUser}
-                onLoginRequired={() => navigate("/home")}
+                token={token}
+                isLoggedIn={isLoggedIn}
+                onLoginRequired={() => navigate("/login")}
                 onCommentClick={() => setSelectedPost(post)}
               />
             ))
           )}
         </main>
 
-        {/* RIGHT SIDEBAR */}
-        <aside className="hidden xl:flex flex-col w-[360px] flex-shrink-0 py-6 px-6 sticky top-0 h-screen overflow-y-auto">
+        <aside className="hidden lg:flex flex-col w-[360px] flex-shrink-0 py-6 px-6 sticky top-0 h-screen overflow-y-auto">
           {!currentUser ? (
-            <LoginPromptCard onLogin={() => navigate("/home")} />
+            <LoginPromptCard onLogin={() => navigate("/login")} />
           ) : (
             <div className="bg-[#181818] border border-[#2a2a2a] rounded-2xl p-5">
               <div className="flex items-center gap-3">
-                <Avatar user={currentUser} size={40} />
+                <Avatar
+  user={{ ...currentUser, avatarUrl: currentUser.avatarUrl ?? null }}
+  size={40}
+/>
 
                 <div>
                   <p className="font-semibold text-white text-sm">
@@ -365,15 +359,28 @@ if (selectedPost) {
         </aside>
       </div>
 
-      {/* Mobile Nav */}
       <MobileBottomNav
-        currentUser={currentUser}
+        currentUser={
+  currentUser
+    ? { ...currentUser, avatarUrl: currentUser.avatarUrl ?? null }
+    : null
+}
         activePage={activePage}
         onNav={(page) => {
-          if (page === "create" && !currentUser) {
+          if (page === "home") navigate("/home");
+          if (page === "notifications") navigate("/notifications");
+          if (page === "login") navigate("/login");
+
+          if (page === "create") {
+            if (!isLoggedIn) {
+              navigate("/login");
+              return;
+            }
+
             setShowCreateModal(true);
             return;
           }
+
           setActivePage(page);
         }}
       />

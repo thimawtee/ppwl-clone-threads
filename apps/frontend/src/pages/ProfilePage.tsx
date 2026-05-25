@@ -7,10 +7,12 @@ import {
   Square as Instagram,
   MoreHorizontal,
   SquarePen,
-  UserPlus,
   Pen,
+  Camera,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
+import FloatingCreateButton from "@/components/loggedin/FloatingCreateButton";
+import CreatePostModal from "@/components/CreatePostModal";
 
 interface UserProfile {
   id: string;
@@ -26,17 +28,24 @@ export default function ProfilePage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   const [form, setForm] = useState({
     name: "",
     username: "",
     email: "",
     avatarUrl: "",
+    bio: "",
     password: "",
   });
   const setAuth = useAuthStore((state) => state.setAuth);
   const authUser = useAuthStore((state) => state.user);
 const token = useAuthStore((state) => state.token);
+const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+const openCreateModal = () => {
+  setIsCreateOpen(true);
+};
 
   useEffect(() => {
   if (!authUser) return;
@@ -51,14 +60,12 @@ const token = useAuthStore((state) => state.token);
     username: authUser.username || "",
     email: authUser.email || "",
     avatarUrl: authUser.avatarUrl || "",
+    bio: (authUser as any).bio || "",
     password: "",
   });
 }, [authUser]);
 
-  const defaultAvatar =
-    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80";
-
-  const userAvatar = user?.avatarUrl || defaultAvatar;
+  const userAvatar = user?.avatarUrl || "";
 
   async function handleUpdateProfile() {
 
@@ -69,19 +76,58 @@ const token = useAuthStore((state) => state.token);
 
     try {
       setSaving(true);
+    
+    let uploadedAvatarUrl = form.avatarUrl || null;
+
+if (avatarFile) {
+  const base64 = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = reader.result as string;
+      const cleanBase64 = result.split(",")[1];
+      resolve(cleanBase64);
+    };
+
+    reader.onerror = reject;
+    reader.readAsDataURL(avatarFile);
+  });
+
+  const uploadRes = await fetch(`${API_URL}/upload`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      fileName: avatarFile.name,
+      fileType: avatarFile.type,
+      base64,
+    }),
+  });
+
+  const uploadData = await uploadRes.json();
+
+  if (!uploadData.success) {
+    throw new Error(uploadData.message || "Gagal upload foto profil.");
+  }
+
+  uploadedAvatarUrl = uploadData.data.url;
+}
 
       const body: {
-        name: string;
-        username: string;
-        email: string;
-        avatarUrl: string | null;
-        password?: string;
-      } = {
-        name: form.name,
-        username: form.username,
-        email: form.email,
-        avatarUrl: form.avatarUrl || null,
-      };
+  name: string;
+  username: string;
+  email: string;
+  avatarUrl: string | null;
+  bio: string | null;
+  password?: string;
+} = {
+  name: form.name,
+  username: form.username,
+  email: form.email,
+  avatarUrl: uploadedAvatarUrl,
+  bio: form.bio || null,
+};
 
       if (form.password.trim()) {
         body.password = form.password;
@@ -117,7 +163,7 @@ setAuth(result.data, token);
 
   return (
     <div className="min-h-screen bg-black text-white flex">
-      <LoggedInSidebar />
+      <LoggedInSidebar onCreateThread={openCreateModal} />
 
       <main className="flex-1 flex justify-center px-3 md:px-4 py-4 md:py-6 pb-24">
         <div className="w-full max-w-[620px] border border-[#262626] rounded-[20px] md:rounded-[24px] overflow-hidden bg-black flex flex-col">
@@ -134,23 +180,40 @@ setAuth(result.data, token);
           <div className="px-4 md:px-6 pt-4 pb-2">
             <div className="flex justify-between items-start gap-4">
               <div>
-                <h2 className="text-2xl font-bold tracking-tight text-white">
-                  {user?.name || "Loading..."}
-                </h2>
+  <h2 className="text-2xl font-bold tracking-tight text-white">
+    {user?.name || "Loading..."}
+  </h2>
 
-                <p className="text-sm text-[#777777] mt-0.5">
-                  {user?.username ? `@${user.username}` : ""}
-                </p>
+  <p className="text-sm text-[#777777] mt-0.5">
+    {user?.username ? `@${user.username}` : ""}
+  </p>
 
-                <p className="text-sm text-[#777777] mt-5">0 pengikut</p>
-              </div>
+  {user?.bio && (
+    <p className="text-sm text-white mt-4 max-w-[320px] leading-relaxed">
+      {user.bio}
+    </p>
+  )}
+
+  <p className="text-sm text-[#777777] mt-5">0 pengikut</p>
+</div>
 
               <div className="flex flex-col items-end gap-3">
-                <img
-                  src={userAvatar}
-                  alt="Avatar"
-                  className="w-[72px] h-[72px] rounded-full object-cover"
-                />
+                <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center">
+  {userAvatar ? (
+    <img
+      src={userAvatar}
+      alt="Avatar"
+      className="w-full h-full object-cover"
+      onError={(e) => {
+        e.currentTarget.style.display = "none";
+      }}
+    />
+  ) : (
+    <span className="text-white text-2xl font-bold">
+      {user?.name?.charAt(0).toUpperCase()}
+    </span>
+  )}
+</div>
 
                 <div className="flex items-center gap-3 text-[#ffffff]">
                   <button className="p-1 rounded-full hover:bg-[#121212] transition-colors">
@@ -188,24 +251,37 @@ setAuth(result.data, token);
           </div>
 
           <div className="px-4 md:px-6 py-4 flex items-center justify-between border-b border-[#1f1f1f]">
-            <div className="flex items-center gap-3 flex-1">
-              <img
-                src={userAvatar}
-                alt="Mini Avatar"
-                className="w-9 h-9 rounded-full object-cover opacity-80"
-              />
+  <div className="flex items-center gap-3 flex-1">
+    <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center shrink-0">
+  {userAvatar ? (
+    <img
+      src={userAvatar}
+      alt="Mini Avatar"
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <span className="text-white text-sm font-bold">
+      {user?.name?.charAt(0).toUpperCase()}
+    </span>
+  )}
+</div>
 
-              <input
-                type="text"
-                placeholder="Apa yang baru?"
-                className="bg-transparent text-sm text-white placeholder-[#777777] outline-none flex-1"
-              />
-            </div>
+    <input
+      type="text"
+      placeholder="What's New?"
+      onFocus={openCreateModal}
+      readOnly
+      className="bg-transparent text-sm text-white placeholder-[#777777] outline-none flex-1 cursor-pointer"
+    />
+  </div>
 
-            <button className="border border-[#262626] px-4 py-1.5 rounded-xl text-sm font-semibold text-white bg-black hover:bg-[#121212] transition-colors">
-              Kirim
-            </button>
-          </div>
+  <button
+    onClick={openCreateModal}
+    className="border border-[#262626] px-4 py-1.5 rounded-xl text-sm font-semibold text-white bg-black hover:bg-[#121212] transition-colors"
+  >
+    Post
+  </button>
+</div>
 
           <div className="px-4 md:px-6 py-5">
             <div className="flex justify-between items-center mb-4">
@@ -234,29 +310,35 @@ setAuth(result.data, token);
                   </p>
                 </div>
 
-                <button className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors">
-                  Create
-                </button>
+                <button
+  onClick={openCreateModal}
+  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
+>
+  Create
+</button>
               </div>
 
               <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 flex flex-col items-center text-center justify-between min-h-[180px] md:min-h-[200px]">
                 <div className="flex flex-col items-center">
                   <div className="w-11 h-11 rounded-full border border-[#262626] flex items-center justify-center mb-3">
-                    <UserPlus size={18} className="text-white" />
+                    <Camera size={18} className="text-white" />
                   </div>
 
                   <h4 className="text-xs font-bold text-white mb-1">
-                    Follow 10 profiles
+                    Add profile photo
                   </h4>
 
                   <p className="text-[11px] text-[#777777] leading-normal px-1">
-                    Fill your feed with threads that interest you.
+                    Make it easy for people to recognize you.
                   </p>
                 </div>
 
-                <button className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors">
-                  See profiles
-                </button>
+                <button
+  onClick={() => setEditOpen(true)}
+  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
+>
+  Add
+</button>
               </div>
 
               <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 flex flex-col items-center text-center justify-between min-h-[180px] md:min-h-[200px]">
@@ -274,14 +356,19 @@ setAuth(result.data, token);
                   </p>
                 </div>
 
-                <button className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors">
-                  Add
-                </button>
+                <button
+  onClick={() => setEditOpen(true)}
+  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
+>
+  Add
+</button>
               </div>
             </div>
           </div>
         </div>
       </main>
+
+      <FloatingCreateButton onClick={openCreateModal} />
 
       {editOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-4">
@@ -326,13 +413,30 @@ setAuth(result.data, token);
               />
 
               <input
-                value={form.avatarUrl}
-                onChange={(e) =>
-                  setForm({ ...form, avatarUrl: e.target.value })
-                }
-                placeholder="Avatar URL"
-                className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
-              />
+  type="file"
+  accept="image/*"
+  onChange={(e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAvatarFile(file);
+    setForm({
+      ...form,
+      avatarUrl: URL.createObjectURL(file),
+    });
+  }}
+  className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
+/>
+
+              <textarea
+  value={form.bio}
+  onChange={(e) =>
+    setForm({ ...form, bio: e.target.value })
+  }
+  placeholder="Bio"
+  rows={3}
+  className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none resize-none"
+/>
 
               {user?.provider !== "GOOGLE" && (
   <input
@@ -364,6 +468,10 @@ setAuth(result.data, token);
           </div>
         </div>
       )}
+      <CreatePostModal
+  open={isCreateOpen}
+  onClose={() => setIsCreateOpen(false)}
+/>
     </div>
   );
 }

@@ -20,11 +20,9 @@ export default function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/home" element={<HomeLoggedInPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="/posts/:id" element={<ThreadDetailPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
 
         <Route path="/activity" element={<NotificationPage />} />
-        <Route path="/notifications" element={<NotificationPage />} />
 
         <Route path="/register" element={<RegisterPage />} />
 

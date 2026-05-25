@@ -3,6 +3,14 @@ import { cors } from "@elysiajs/cors";
 import bcrypt from "bcryptjs";
 import { prisma } from "./lib/prisma";
 import jwt from "jsonwebtoken";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { randomUUID } from "crypto";
+
+const s3 = new S3Client({
+  region: process.env.AWS_REGION || "us-east-1",
+});
+
+const S3_BUCKET = process.env.S3_BUCKET_NAME || "threads-clone-storage-ppwl-tubes";
 
 const app = new Elysia()
   .use(cors())
@@ -1035,6 +1043,58 @@ if (postCount >= 2) {
     return {
       success: false,
       message: "Token tidak valid atau data sudah digunakan",
+    };
+  }
+})
+
+.post("/upload", async ({ body }) => {
+  try {
+    const { fileName, fileType, base64 } = body as {
+      fileName: string;
+      fileType: string;
+      base64: string;
+    };
+
+    if (!fileName || !fileType || !base64) {
+      return {
+        success: false,
+        message: "File wajib diupload",
+      };
+    }
+
+    if (!fileType.startsWith("image/")) {
+      return {
+        success: false,
+        message: "Hanya file gambar yang diperbolehkan",
+      };
+    }
+
+    const ext = fileName.split(".").pop() || "png";
+    const s3Key = `uploads/${randomUUID()}.${ext}`;
+    const buffer = Buffer.from(base64, "base64");
+
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: s3Key,
+        Body: buffer,
+        ContentType: fileType,
+      })
+    );
+
+    return {
+      success: true,
+      message: "Upload berhasil",
+      data: {
+        url: `https://${S3_BUCKET}.s3.amazonaws.com/${s3Key}`,
+      },
+    };
+  } catch (error) {
+    console.error("UPLOAD_ERROR:", error);
+
+    return {
+      success: false,
+      message: "Upload gagal ke S3",
     };
   }
 })

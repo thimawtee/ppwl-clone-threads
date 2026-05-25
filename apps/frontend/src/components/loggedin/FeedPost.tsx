@@ -2,8 +2,6 @@ import { useState } from "react";
 import {
   Heart,
   MessageCircle,
-  Repeat2,
-  Send,
   MoreHorizontal,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -143,15 +141,20 @@ const token = useAuthStore((state) => state.token);
     <article className="border-b border-[#262626] px-6 py-5">
       <div className="flex gap-3">
         <div className="relative">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-[#222]">
-            {post.user.avatarUrl && (
-              <img
-                src={post.user.avatarUrl}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            )}
-          </div>
+          <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-400 to-green-300 flex items-center justify-center text-white font-bold">
+  {post.user.avatarUrl ? (
+    <img
+      src={post.user.avatarUrl}
+      alt={post.user.name}
+      className="w-full h-full object-cover"
+      onError={(e) => {
+        e.currentTarget.style.display = "none";
+      }}
+    />
+  ) : (
+    post.user.name?.charAt(0).toUpperCase()
+  )}
+</div>
         </div>
 
         <div className="flex-1">
@@ -220,14 +223,6 @@ const token = useAuthStore((state) => state.token);
             >
               <MessageCircle size={20} />
               <span className="text-sm">{post.commentCount}</span>
-            </button>
-
-            <button className="hover:text-white">
-              <Repeat2 size={20} />
-            </button>
-
-            <button className="hover:text-white">
-              <Send size={20} />
             </button>
           </div>
         </div>

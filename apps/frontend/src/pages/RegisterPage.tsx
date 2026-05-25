@@ -24,27 +24,47 @@ export default function RegisterPage() {
   }
 
   async function handleRegister() {
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    try {
-      const res = await axios.post(`${API_URL}/auth/register`, form);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-      if (!res.data.success) {
-        throw new Error(res.data.message || "Registrasi gagal");
-      }
-
-      navigate("/login");
-    } catch (err: any) {
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Registrasi gagal"
-      );
-    } finally {
-      setLoading(false);
-    }
+  if (!form.name || !form.username || !form.email || !form.password) {
+    setError("Semua field wajib diisi.");
+    setLoading(false);
+    return;
   }
+
+  if (!emailRegex.test(form.email)) {
+    setError("Format email tidak valid.");
+    setLoading(false);
+    return;
+  }
+
+  if (form.password.length < 8) {
+    setError("Password minimal 8 karakter.");
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const res = await axios.post(`${API_URL}/auth/register`, form);
+
+    if (!res.data.success) {
+      throw new Error(res.data.message || "Registrasi gagal");
+    }
+
+    navigate("/login");
+  } catch (err: any) {
+    setError(
+      err.response?.data?.message ||
+        err.message ||
+        "Registrasi gagal"
+    );
+  } finally {
+    setLoading(false);
+  }
+}
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter") handleRegister();
@@ -88,24 +108,26 @@ export default function RegisterPage() {
           />
 
           <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-[#242424] text-white border border-[#2d2d2d]"
-          />
+  type="email"
+  name="email"
+  placeholder="Email"
+  value={form.email}
+  onChange={handleChange}
+  onKeyDown={handleKeyDown}
+  required
+  className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-[#242424] text-white border border-[#2d2d2d]"
+/>
 
           <input
-            type="password"
-            name="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            onKeyDown={handleKeyDown}
-            className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-[#242424] text-white border border-[#2d2d2d]"
-          />
+  type="password"
+  name="password"
+  placeholder="Password"
+  value={form.password}
+  onChange={handleChange}
+  onKeyDown={handleKeyDown}
+  minLength={8}
+  className="w-full px-4 py-3 rounded-xl text-sm outline-none bg-[#242424] text-white border border-[#2d2d2d]"
+/>
         </div>
 
         <button

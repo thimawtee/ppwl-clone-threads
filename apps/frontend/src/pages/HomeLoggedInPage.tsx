@@ -4,6 +4,8 @@ import LoggedInSidebar from "../components/loggedin/LoggedInSidebar";
 import FeedComposer from "../components/loggedin/FeedComposer";
 import FeedPost from "../components/loggedin/FeedPost";
 import { useAuthStore } from "@/stores/auth.store";
+import FloatingCreateButton from "@/components/loggedin/FloatingCreateButton";
+import CreatePostModal from "@/components/CreatePostModal";
 
 interface PostUser {
   id: string;
@@ -27,15 +29,20 @@ export default function HomeLoggedInPage() {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
 
-  useEffect(() => {
+  const openCreateModal = () => {
+    setIsCreateOpen(true);
+  };
 
-  if (!token || !user) {
-    window.location.href = "/login";
-  }
-}, []);
+  useEffect(() => {
+    if (!token || !user) {
+      window.location.href = "/login";
+    }
+  }, [token, user]);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -52,51 +59,36 @@ export default function HomeLoggedInPage() {
     }
 
     fetchPosts();
-  }, []);
+  }, [BACKEND_URL]);
 
   return (
     <div className="min-h-screen bg-black text-white flex">
-      {/* Sidebar */}
-      <LoggedInSidebar />
+      <LoggedInSidebar onCreateThread={openCreateModal} />
 
-      {/* Feed */}
       <main className="flex-1 flex justify-center">
         <div className="w-full max-w-[640px]">
-          {/* Header */}
           <div className="pt-4 pb-6 px-6">
-            <h1 className="text-[32px] font-bold tracking-tight">
-              For you
-            </h1>
+            <h1 className="text-[32px] font-bold tracking-tight">For you</h1>
           </div>
 
-          {/* Composer */}
-        <div className="mx-2 md:mx-6 border border-[#262626] rounded-[20px] md:rounded-[28px] overflow-hidden mb-24">
-            <FeedComposer />
+          <div className="mx-2 md:mx-6 border border-[#262626] rounded-[20px] md:rounded-[28px] overflow-hidden mb-24">
+            <FeedComposer onCreateThread={openCreateModal} />
 
-            {/* Posts */}
             {loading ? (
-              <div className="py-20 text-center text-[#777]">
-                Loading...
-              </div>
+              <div className="py-20 text-center text-[#777]">Loading...</div>
             ) : (
-              posts.map((post) => (
-                <FeedPost
-                  key={post.id}
-                  post={post}
-                />
-              ))
+              posts.map((post) => <FeedPost key={post.id} post={post} />)
             )}
           </div>
         </div>
       </main>
-            {/* Floating Create Button */}
-      <button className="hidden md:flex fixed bottom-6 right-6 w-16 h-16 rounded-3xl border border-[#2a2a2a] bg-[#111] hover:bg-[#1a1a1a] transition-colors items-center justify-center shadow-2xl">
-        <span className="text-4xl font-light leading-none -mt-1">
-          +
-        </span>
-      </button>
-    </div>
 
-    
+      <FloatingCreateButton onClick={openCreateModal} />
+
+      <CreatePostModal
+        open={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+      />
+    </div>
   );
 }

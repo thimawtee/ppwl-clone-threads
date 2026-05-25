@@ -1,5 +1,6 @@
 import FeedPostCard from "./FeedPostCard";
 import ComposerBox from "./ComposerBox";
+import FloatingCreateButton from "./FloatingCreateButton";
 
 interface Post {
   id: string;
@@ -11,11 +12,13 @@ interface Post {
 
 export default function HomeFeed({
   posts,
+  onCreateThread,
 }: {
   posts: Post[];
+  onCreateThread: () => void;
 }) {
   return (
-    <main className="flex-1 max-w-[640px] border-r border-[#1f1f1f]">
+    <main className="flex-1 max-w-[640px] border-r border-[#1f1f1f] relative">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-[#1f1f1f]">
         <div className="h-[60px] flex items-center justify-center">
@@ -24,7 +27,7 @@ export default function HomeFeed({
           </h1>
         </div>
 
-        <ComposerBox />
+        <ComposerBox onCreateThread={onCreateThread} />
       </div>
 
       {/* Posts */}
@@ -34,6 +37,9 @@ export default function HomeFeed({
           post={post}
         />
       ))}
+
+      {/* Floating Button */}
+      <FloatingCreateButton onClick={onCreateThread} />
     </main>
   );
 }
