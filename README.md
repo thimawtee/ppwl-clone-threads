@@ -9,9 +9,9 @@ Project akhir mata kuliah **Pemrograman Perangkat Web Lanjut (PPWL)** berupa imp
 
 ---
 
-### 🚀 **Frontend (AWS S3 Static Website Hosting)**
+### 🚀 **Frontend (CloudFront)**
 
-🔗 http://threads-clone-storage-ppwl-tubes.s3-website-us-east-1.amazonaws.com/
+🔗 https://de1tz7lteq0hp.cloudfront.net/
 
 ---
 
