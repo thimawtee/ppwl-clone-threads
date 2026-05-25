@@ -95,8 +95,8 @@ export default function CreatePostModal({ open, onClose }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-      <div className="relative w-full max-w-[560px] bg-[#0f0f0f] border border-[#262626] rounded-[28px] shadow-2xl">
+    <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4 overflow-y-auto py-10">
+      <div className="relative w-full max-w-[560px] max-h-[90vh] overflow-y-auto bg-[#0f0f0f] border border-[#262626] rounded-[28px] shadow-2xl">
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#262626]">
           <button
             type="button"
@@ -165,7 +165,7 @@ export default function CreatePostModal({ open, onClose }: Props) {
                   <img
                     src={previewUrl}
                     alt="Preview"
-                    className="w-full max-h-[300px] object-cover"
+                    className="w-full max-h-[420px] object-contain bg-black"
                   />
                 </div>
               )}
