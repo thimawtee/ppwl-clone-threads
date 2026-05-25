@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import { useAuthStore } from "../stores/auth.store";
-import { API_URL } from "../services/api";
+import { API_URL } from "@/services/api";
 
 interface User {
   id: string;
@@ -41,73 +41,51 @@ export default function ThreadDetail({
   isLoggedIn,
   onLoginRequired,
 }: ThreadDetailProps) {
-  const token = useAuthStore((state) => state.token);
+  const BACKEND_URL = API_URL;
 
-  const [comments, setComments] = useState<Comment[]>(post.comments || []);
   const [commentText, setCommentText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-  async function fetchPostDetail() {
+  const token = useAuthStore((state) => state.token);
+  const comments = post.comments || [];
+
+  async function handleSendComment() {
+    if (!isLoggedIn) {
+      onLoginRequired();
+      return;
+    }
+
+    if (!commentText.trim()) return;
+
     try {
-      const res = await fetch(`${API_URL}/posts/${post.id}`);
+      setSubmitting(true);
+
+      const res = await fetch(`${BACKEND_URL}/comments`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({
+    postId: post.id,
+    content: commentText.trim(),
+  }),
+});
+
       const result = await res.json();
 
       if (result.success) {
-        setComments(result.data.comments || []);
+        setCommentText("");
+        window.location.reload();
+      } else {
+        alert(result.message || "Gagal mengirim komentar");
       }
-    } catch (error) {
-      console.error("Gagal mengambil komentar", error);
+    } catch (err) {
+      alert("Terjadi kesalahan saat mengirim komentar.");
+    } finally {
+      setSubmitting(false);
     }
   }
-
-  fetchPostDetail();
-}, [post.id]);
-
-  async function handleSendComment() {
-  if (submitting) return;
-
-  if (!isLoggedIn || !token) {
-    onLoginRequired();
-    return;
-  }
-
-  if (!commentText.trim()) return;
-
-  try {
-    setSubmitting(true);
-
-    const res = await fetch(`${API_URL}/comments`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        postId: post.id,
-        content: commentText.trim(),
-      }),
-    });
-
-    const result = await res.json();
-
-    if (!result.success) {
-      throw new Error(result.message || "Gagal mengirim komentar");
-    }
-
-    setCommentText("");
-
-    if (result.data) {
-      setComments((prev) => [...prev, result.data]);
-    } else {
-      window.location.reload();
-    }
-  } catch (error: any) {
-    alert(error.message || "Terjadi kesalahan saat mengirim komentar.");
-  } finally {
-    setSubmitting(false);
-  }
-}
 
   return (
     <div className="min-h-screen bg-[#101010] text-white">
@@ -118,24 +96,13 @@ export default function ThreadDetail({
         >
           <ArrowLeft size={20} />
         </button>
-
         <span className="font-bold text-lg">Thread</span>
       </div>
 
       <div className="p-4 border-b border-[#1e1e1e]">
         <div className="flex gap-3">
-          <div className="w-9 h-9 rounded-full bg-zinc-700 flex-shrink-0 flex items-center justify-center text-sm font-bold overflow-hidden">
-            {post.user.avatarUrl ? (
-              <img
-                src={post.user.avatarUrl}
-                alt={post.user.name}
-                className="w-full h-full object-cover"
-              />
-            ) : post.user.name ? (
-              post.user.name[0].toUpperCase()
-            ) : (
-              "U"
-            )}
+          <div className="w-9 h-9 rounded-full bg-zinc-700 flex-shrink-0 flex items-center justify-center text-sm font-bold">
+            {post.user.name ? post.user.name[0].toUpperCase() : "U"}
           </div>
 
           <div className="flex-1">
@@ -171,15 +138,7 @@ export default function ThreadDetail({
                 placeholder="Reply to this thread..."
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-
-    if (submitting || !commentText.trim()) return;
-
-    handleSendComment();
-  }
-}}
+                onKeyDown={(e) => e.key === "Enter" && handleSendComment()}
                 className="flex-1 bg-transparent text-[14px] outline-none placeholder-[#555]"
               />
 
@@ -218,18 +177,10 @@ export default function ThreadDetail({
         ) : (
           comments.map((comment) => (
             <div key={comment.id} className="p-4 flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-zinc-800 flex-shrink-0 flex items-center justify-center text-xs font-bold text-zinc-400 overflow-hidden">
-                {comment.user?.avatarUrl ? (
-                  <img
-                    src={comment.user.avatarUrl}
-                    alt={comment.user.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : comment.user?.name ? (
-                  comment.user.name[0].toUpperCase()
-                ) : (
-                  "U"
-                )}
+              <div className="w-8 h-8 rounded-full bg-zinc-800 flex-shrink-0 flex items-center justify-center text-xs font-bold text-zinc-400">
+                {comment.user?.name
+                  ? comment.user.name[0].toUpperCase()
+                  : "U"}
               </div>
 
               <div className="flex-1">
