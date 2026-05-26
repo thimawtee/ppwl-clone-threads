@@ -1,5 +1,14 @@
 import { useState, useEffect, useRef } from "react";
-import { ImagePlus, X } from "lucide-react";
+import {
+  ImagePlus,
+  X,
+  Globe,
+  AlignLeft,
+  MapPin,
+  FileText,
+  Smile,
+} from "lucide-react";
+
 import { API_URL } from "@/services/api";
 import { useAuthStore } from "@/stores/auth.store";
 
@@ -14,12 +23,17 @@ export default function CreatePostModal({ open, onClose }: Props) {
   const [previewUrl, setPreviewUrl] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // image ratio state
   const [imageRatio, setImageRatio] = useState("1 / 1");
 
-  // discard popup state
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
+
+  // ─────────────────────────────────────────────────────
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -27,9 +41,6 @@ export default function CreatePostModal({ open, onClose }: Props) {
         textareaRef.current.scrollHeight + "px";
     }
   }, [content]);
-
-  const token = useAuthStore((state) => state.token);
-  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     if (!previewUrl) return;
@@ -55,13 +66,11 @@ export default function CreatePostModal({ open, onClose }: Props) {
   }
 
   function handleCancel() {
-    // kondisi 1
     if (!hasContent) {
       onClose();
       return;
     }
 
-    // kondisi 2
     setShowDiscardModal(true);
   }
 
@@ -148,101 +157,272 @@ export default function CreatePostModal({ open, onClose }: Props) {
 
   return (
     <>
-      <div className="fixed inset-0 z-[100] bg-black/70  flex items-center justify-center px-4 py-10">
-        <div
-          className={`
+      {/* OVERLAY */}
+      <div className="fixed inset-0 z-[100] bg-black/70">
+        {/* ───────────────── DESKTOP ───────────────── */}
+        <div className="hidden sm:flex items-center justify-center h-full px-4 py-10">
+          <div
+            className="
     relative
     w-full
     max-w-[620px]
 
-    ${
-      previewUrl || content.trim().length > 180
-        ? "min-h-[420px] max-h-[88vh]"
-        : "min-h-[260px]"
-    }
-
     bg-[#0f0f0f]
     border
     border-[#262626]
+
     rounded-[28px]
+    overflow-hidden
+
     shadow-2xl
+
     flex
     flex-col
-    overflow-hidden
-  `}
-        >
-          {/* HEADER */}
-          <div
-            className="
-              sticky
-              top-0
-              z-20
-              flex
-              items-center
-              justify-between
-              px-5
-              py-4
-              border-b
-              border-[#262626]
-              bg-[#0f0f0f]
-              shrink-0
-            "
+
+    max-h-[88vh]
+  "
           >
-            <button
-              type="button"
-              onClick={handleCancel}
+            {/* HEADER */}
+            <div className="sticky top-0 z-20 flex items-center justify-between px-5 py-4 border-b border-[#262626] bg-[#0f0f0f] shrink-0">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="text-[15px] text-white hover:opacity-80"
+              >
+                Cancel
+              </button>
+
+              <h2 className="font-bold text-[18px]">New thread</h2>
+
+              <div className="w-[52px]" />
+            </div>
+
+            {/* CONTENT */}
+            <div
               className="
-                text-[15px]
-                text-white
-                hover:opacity-80
-                transition-opacity
-              "
-            >
-              Cancel
-            </button>
-
-            <h2 className="font-bold text-[18px]">New thread</h2>
-
-            <div className="w-[52px]" />
-          </div>
-
-          {/* SCROLLABLE CONTENT */}
-          <div
-            className="
-    flex-1
-    overflow-y-auto
     p-4
     sm:p-5
+
+    overflow-y-auto
 
     [scrollbar-width:none]
     [-ms-overflow-style:none]
     [&::-webkit-scrollbar]:hidden
   "
+            >
+              <div className="flex gap-3 items-start">
+                {/* Avatar */}
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-green-400 overflow-hidden shrink-0 flex items-center justify-center">
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white font-bold text-lg">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+
+                {/* CONTENT */}
+                <div className="flex-1 min-w-0 flex flex-col">
+                  <p className="font-semibold text-[15px] leading-none mb-1">
+                    {user?.username || user?.name}
+                  </p>
+
+                  <textarea
+                    ref={textareaRef}
+                    value={content}
+                    onChange={(e) => {
+                      setContent(e.target.value);
+
+                      e.target.style.height = "auto";
+                      e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    placeholder="What's new?"
+                    rows={1}
+                    className="
+    w-full
+
+    bg-transparent
+    text-white
+    placeholder:text-[#777]
+
+    outline-none
+    border-none
+    resize-none
+
+    overflow-hidden
+
+    text-[15px]
+    leading-6
+
+    min-h-[34px]
+
+    whitespace-pre-wrap
+    break-words
+  "
+                  />
+
+                  {/* Upload */}
+                  <div className="mt-4">
+                    <label className="flex items-center gap-2 text-[#777] hover:text-white cursor-pointer transition-colors">
+                      <ImagePlus size={20} />
+
+                      <span className="text-sm">
+                        {selectedFile ? selectedFile.name : "Upload image"}
+                      </span>
+
+                      <input
+                        type="file"
+                        accept="image/*"
+                        hidden
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+
+                          if (!file) return;
+
+                          setSelectedFile(file);
+                          setPreviewUrl(URL.createObjectURL(file));
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  {/* Preview */}
+                  {previewUrl && (
+                    <div
+                      className="
+                        relative
+                        mt-4
+                        w-full
+                        rounded-2xl
+                        overflow-hidden
+                        border
+                        border-[#2a2a2a]
+                        bg-black
+                      "
+                      style={{
+                        aspectRatio: imageRatio,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedFile(null);
+                          setPreviewUrl("");
+                          setImageRatio("1 / 1");
+                        }}
+                        className="
+                          absolute
+                          top-3
+                          right-3
+                          z-10
+                          w-9
+                          h-9
+                          rounded-full
+                          bg-black/60
+                          flex
+                          items-center
+                          justify-center
+                        "
+                      >
+                        <X size={16} className="text-white" />
+                      </button>
+
+                      <img
+                        src={previewUrl}
+                        alt="Preview"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* FOOTER */}
+            <div className="shrink-0 flex justify-end px-5 py-4 border-t border-[#262626] bg-[#0f0f0f]">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={loading || (!content.trim() && !selectedFile)}
+                className="
+                  px-6
+                  py-2
+                  rounded-xl
+                  border
+                  border-white/20
+                  bg-[#0f0f0f]
+                  text-white
+                  font-semibold
+                  disabled:opacity-40
+                "
+              >
+                {loading ? "Posting..." : "Post"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ───────────────── MOBILE ───────────────── */}
+        <div className="sm:hidden flex flex-col h-screen bg-[#0f0f0f]">
+          {/* HEADER */}
+          <div className="h-[58px] border-b border-[#1f1f1f] flex items-center justify-between px-4 shrink-0">
+            <button onClick={handleCancel} className="text-white text-[15px]">
+              Cancel
+            </button>
+
+            <h2 className="text-[16px] font-bold text-white">New thread</h2>
+
+            <div className="w-[52px]" />
+          </div>
+
+          {/* BODY */}
+          <div
+            className="
+              flex-1
+              overflow-y-auto
+              px-4
+              py-4
+
+              [scrollbar-width:none]
+              [-ms-overflow-style:none]
+              [&::-webkit-scrollbar]:hidden
+            "
           >
             <div className="flex gap-3">
-              {/* Avatar */}
-              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-green-400 overflow-hidden shrink-0 flex items-center justify-center">
-                {user?.avatarUrl ? (
-                  <img
-                    src={user.avatarUrl}
-                    alt={user.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-white font-bold text-lg">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </span>
+              {/* LEFT */}
+              <div className="flex flex-col items-center">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-green-400 shrink-0">
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                {(content.trim() || previewUrl) && (
+                  <div className="w-[1px] flex-1 bg-[#2a2a2a] mt-2" />
                 )}
               </div>
 
-              {/* Content */}
+              {/* RIGHT */}
               <div className="flex-1 min-w-0">
                 {/* Username */}
-                <p className="font-semibold text-[15px] leading-none mb-1">
+                <p className="font-semibold text-[15px] text-white">
                   {user?.username || user?.name}
                 </p>
 
-                {/* Textarea */}
+                {/* TEXTAREA */}
                 <textarea
                   ref={textareaRef}
                   value={content}
@@ -250,28 +430,38 @@ export default function CreatePostModal({ open, onClose }: Props) {
                   placeholder="What's new?"
                   rows={1}
                   className="
-    w-full
-    bg-transparent
-    text-white
-    placeholder:text-[#777]
-    outline-none
-    resize-none
-    overflow-hidden
+                    mt-2
+                    w-full
+                    bg-transparent
+                    text-white
+                    placeholder:text-[#666]
+                    outline-none
+                    resize-none
+                    overflow-hidden
 
-    text-[15px]
-    leading-6
+                    text-[15px]
+                    leading-6
 
-    min-h-[34px]
-    pt-0.5
-  "
+                    min-h-[34px]
+                  "
                 />
 
-                {/* Upload */}
+                {/* IMAGE UPLOAD */}
                 <div className="mt-4">
-                  <label className="flex items-center gap-2 text-[#777] hover:text-white cursor-pointer transition-colors">
+                  <label
+                    className="
+                      inline-flex
+                      items-center
+                      gap-2
+                      text-[#777]
+                      hover:text-white
+                      transition-colors
+                      cursor-pointer
+                    "
+                  >
                     <ImagePlus size={20} />
 
-                    <span className="text-sm">
+                    <span className="text-[14px]">
                       {selectedFile ? selectedFile.name : "Upload image"}
                     </span>
 
@@ -291,13 +481,12 @@ export default function CreatePostModal({ open, onClose }: Props) {
                   </label>
                 </div>
 
-                {/* Preview */}
+                {/* PREVIEW */}
                 {previewUrl && (
                   <div
                     className="
                       relative
-                      mt-4
-                      w-full
+                      mt-5
                       rounded-2xl
                       overflow-hidden
                       border
@@ -308,7 +497,7 @@ export default function CreatePostModal({ open, onClose }: Props) {
                       aspectRatio: imageRatio,
                     }}
                   >
-                    {/* Remove Image Button */}
+                    {/* REMOVE */}
                     <button
                       type="button"
                       onClick={() => {
@@ -321,22 +510,18 @@ export default function CreatePostModal({ open, onClose }: Props) {
                         top-3
                         right-3
                         z-10
-                        w-9
-                        h-9
+                        w-8
+                        h-8
                         rounded-full
-                        bg-black/60
-                        backdrop-blur-sm
+                        bg-black/70
                         flex
                         items-center
                         justify-center
-                        hover:bg-black/80
-                        transition-colors
                       "
                     >
-                      <X size={16} className="text-white" />
+                      <X size={14} className="text-white" />
                     </button>
 
-                    {/* Image */}
                     <img
                       src={previewUrl}
                       alt="Preview"
@@ -353,37 +538,24 @@ export default function CreatePostModal({ open, onClose }: Props) {
           </div>
 
           {/* FOOTER */}
-          <div
-            className="
-              shrink-0
-              flex
-              justify-end
-              px-5
-              py-4
-              border-t
-              border-[#262626]
-              bg-[#0f0f0f]
-            "
-          >
+          <div className="h-[72px] border-t border-[#1f1f1f] px-4 flex items-center justify-end shrink-0 bg-[#0f0f0f]">
             <button
               type="button"
               onClick={handleSubmit}
               disabled={loading || (!content.trim() && !selectedFile)}
               className="
-                px-6
-                py-2
-                rounded-xl
-                border
-                border-white/20
-                bg-[#0f0f0f]
-                text-white
+                px-5
+                py-2.5
+                rounded-full
+
+                bg-white
+                text-black
+
                 font-semibold
-                transition-all
-                duration-200
+                text-[14px]
+
                 disabled:opacity-40
                 disabled:cursor-not-allowed
-                hover:bg-[#1d1d1d]
-                hover:border-white/40
               "
             >
               {loading ? "Posting..." : "Post"}
@@ -395,19 +567,7 @@ export default function CreatePostModal({ open, onClose }: Props) {
       {/* DISCARD MODAL */}
       {showDiscardModal && (
         <div className="fixed inset-0 z-[200] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4">
-          <div
-            className="
-              w-full
-              max-w-[280px]
-              bg-[#181818]
-              border
-              border-[#2a2a2a]
-              rounded-3xl
-              overflow-hidden
-              shadow-2xl
-            "
-          >
-            {/* Content */}
+          <div className="w-full max-w-[280px] bg-[#181818] border border-[#2a2a2a] rounded-3xl overflow-hidden shadow-2xl">
             <div className="px-6 py-7 text-center">
               <h3 className="text-white text-[20px] font-bold">
                 Discard post?
@@ -418,7 +578,6 @@ export default function CreatePostModal({ open, onClose }: Props) {
               </p>
             </div>
 
-            {/* Actions */}
             <div className="border-t border-[#2a2a2a]">
               <button
                 type="button"
@@ -429,8 +588,6 @@ export default function CreatePostModal({ open, onClose }: Props) {
                   text-red-500
                   font-semibold
                   text-[16px]
-                  hover:bg-white/5
-                  transition-colors
                 "
               >
                 Discard
@@ -446,8 +603,6 @@ export default function CreatePostModal({ open, onClose }: Props) {
                   py-4
                   text-white
                   text-[16px]
-                  hover:bg-white/5
-                  transition-colors
                 "
               >
                 Cancel
