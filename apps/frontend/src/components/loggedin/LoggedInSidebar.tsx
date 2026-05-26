@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useAuthStore } from "../../stores/auth.store";
 
 import ThreadsLogo from "../../assets/images/logo-threads-no-login.png";
+import ThreadsLogoNoText from "../../assets/images/logo-threads-no-login-no-text.png";
 
 interface LoggedInSidebarProps {
   onCreateThread: () => void;
@@ -229,7 +230,11 @@ export default function LoggedInSidebar({
 
         {/* Logo */}
         <div className="absolute left-1/2 -translate-x-1/2">
-          <img src={ThreadsLogo} alt="Threads" className="h-7 object-contain" />
+          <img
+            src={ThreadsLogoNoText}
+            alt="Threads"
+            className="h-7 w-7 object-contain"
+          />
         </div>
 
         {/* Empty spacing */}

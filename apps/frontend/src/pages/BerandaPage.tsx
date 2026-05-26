@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import logoThreads from "../assets/images/logo-threads-no-login.png";
+import logoThreads from "../assets/images/logo-threads-no-login-no-text.png";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../services/api";
 import ThreadDetail from "../components/ThreadDetail";
