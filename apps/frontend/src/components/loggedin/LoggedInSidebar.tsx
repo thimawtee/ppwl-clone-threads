@@ -50,17 +50,13 @@ export default function LoggedInSidebar({
           {/* TOP SECTION */}
           <div>
             <div className="flex items-center gap-4 mb-10 px-2">
-              <div className="w-12 h-12 flex items-center justify-center shrink-0">
+              <div className="flex items-center">
                 <img
                   src={ThreadsLogo}
                   alt="Threads"
-                  className="w-11 h-11 object-contain mix-blend-lighten translate-y-[4px]"
+                  className="w-[170px] object-contain"
                 />
               </div>
-
-              <h1 className="text-[38px] leading-none font-bold tracking-tight">
-                Threats
-              </h1>
             </div>
 
             <nav className="space-y-1">
@@ -272,7 +268,7 @@ export default function LoggedInSidebar({
               <img
                 src={ThreadsLogo}
                 alt="Threads"
-                className="h-7 object-contain"
+                className="h-9 object-contain"
               />
 
               <button
