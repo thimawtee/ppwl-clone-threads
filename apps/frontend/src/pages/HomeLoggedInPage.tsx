@@ -49,7 +49,13 @@ export default function HomeLoggedInPage() {
   useEffect(() => {
     async function fetchPosts() {
       try {
-        const res = await fetch(`${BACKEND_URL}/posts`);
+        const res = await fetch(`${BACKEND_URL}/posts`, {
+  headers: token
+    ? {
+        Authorization: `Bearer ${token}`,
+      }
+    : {},
+});
         const data = await res.json();
 
         if (data.success) {
@@ -61,7 +67,7 @@ export default function HomeLoggedInPage() {
     }
 
     fetchPosts();
-  }, [BACKEND_URL]);
+  }, [BACKEND_URL, token]);
 
   return (
     <div className="min-h-screen bg-[#101010] text-white flex">

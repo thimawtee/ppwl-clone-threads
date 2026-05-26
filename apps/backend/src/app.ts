@@ -302,7 +302,25 @@ const app = new Elysia()
   };
 })
 
-.get("/posts", async () => {
+.get("/posts", async ({ headers }) => {
+  let currentUserId: string | null = null;
+
+  const authHeader = headers.authorization;
+
+  if (authHeader?.startsWith("Bearer ")) {
+    try {
+      const token = authHeader.split(" ")[1];
+      const decoded: any = jwt.verify(
+        token,
+        process.env.JWT_SECRET || "secret-uas-ppwl"
+      );
+
+      currentUserId = decoded.userId;
+    } catch {
+      currentUserId = null;
+    }
+  }
+
   const posts = await prisma.post.findMany({
     orderBy: {
       createdAt: "desc",
@@ -332,39 +350,10 @@ const app = new Elysia()
       user: post.user,
       likeCount: post.likes.length,
       commentCount: post.comments.length,
+      isLiked: currentUserId
+        ? post.likes.some((like) => like.userId === currentUserId)
+        : false,
     })),
-  };
-})
-
-.post("/seed/comments", async () => {
-  const user = await prisma.user.findFirst();
-  const post = await prisma.post.findFirst();
-
-  if (!user || !post) {
-    return {
-      success: false,
-      message: "User atau post belum ada",
-    };
-  }
-
-  await prisma.comment.createMany({
-    data: [
-      {
-        userId: user.id,
-        postId: post.id,
-        content: "Ini komentar dummy pertama.",
-      },
-      {
-        userId: user.id,
-        postId: post.id,
-        content: "Komentar ini digunakan untuk testing halaman detail postingan.",
-      },
-    ],
-  });
-
-  return {
-    success: true,
-    message: "Dummy komentar berhasil dibuat",
   };
 })
 
@@ -715,9 +704,17 @@ if (commentCount >= 5) {
         },
       });
 
+      const likeCount = await prisma.postLike.count({
+        where: {
+          postId: params.id,
+        },
+      });
+
       return {
         success: true,
         message: "Like dibatalkan",
+        liked: false,
+        likeCount,
       };
     }
 
@@ -739,9 +736,17 @@ if (commentCount >= 5) {
       });
     }
 
+    const likeCount = await prisma.postLike.count({
+      where: {
+        postId: params.id,
+      },
+    });
+
     return {
       success: true,
       message: "Postingan berhasil dilike",
+      liked: true,
+      likeCount,
       data: like,
     };
   } catch {

@@ -72,8 +72,8 @@ export default function FeedPost({ post }: { post: Post }) {
     }
 
     setLiked(result.liked);
+setLikeCount(result.likeCount);
 
-    setLikeCount(result.likeCount);
   } catch (error: any) {
     toast.error(error.message || "Terjadi kesalahan.");
   }
