@@ -24,11 +24,13 @@ interface Post {
   user: PostUser;
   likeCount: number;
   commentCount: number;
+  isLiked?: boolean;
 }
 
 function timeAgo(dateStr: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
+
   const diff = Math.floor((now - then) / 1000);
 
   if (diff < 3600) return `${Math.floor(diff / 60)}m`;
@@ -43,29 +45,41 @@ export default function FeedPost({ post }: { post: Post }) {
   const [editOpen, setEditOpen] = useState(false);
   const [editContent, setEditContent] = useState(post.content);
   const [saving, setSaving] = useState(false);
-  const user = useAuthStore((state) => state.user);
-  void user;
-const token = useAuthStore((state) => state.token);
+
+  const [liked, setLiked] = useState(post.isLiked || false);
+  const [likeCount, setLikeCount] = useState(post.likeCount);
+
+  const token = useAuthStore((state) => state.token);
 
   async function handleLike() {
+  if (!token) {
+    navigate("/login");
+    return;
+  }
 
-    if (!token) {
-      navigate("/login");
-      return;
-    }
-
-    await fetch(`${API_URL}/posts/${post.id}/like`, {
+  try {
+    const res = await fetch(`${API_URL}/posts/${post.id}/like`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
-    window.location.reload();
+    const result = await res.json();
+
+    if (!result.success) {
+      throw new Error(result.message || "Gagal like postingan");
+    }
+
+    setLiked(result.liked);
+
+    setLikeCount(result.likeCount);
+  } catch (error: any) {
+    toast.error(error.message || "Terjadi kesalahan.");
   }
+}
 
   async function handleUpdatePost() {
-
     if (!token) {
       navigate("/login");
       return;
@@ -93,11 +107,13 @@ const token = useAuthStore((state) => state.token);
       const result = await res.json();
 
       if (!result.success) {
-        throw new Error(result.message || "Gagal memperbarui postingan.");
+        throw new Error(result.message);
       }
 
       toast.success("Postingan berhasil diperbarui.");
+
       setEditOpen(false);
+
       window.location.reload();
     } catch (error: any) {
       toast.error(error.message || "Terjadi kesalahan.");
@@ -107,7 +123,9 @@ const token = useAuthStore((state) => state.token);
   }
 
   async function handleDeletePost() {
-    const confirmDelete = confirm("Yakin ingin menghapus postingan ini?");
+    const confirmDelete = confirm(
+      "Yakin ingin menghapus postingan ini?"
+    );
 
     if (!confirmDelete) return;
 
@@ -127,10 +145,11 @@ const token = useAuthStore((state) => state.token);
       const result = await res.json();
 
       if (!result.success) {
-        throw new Error(result.message || "Gagal menghapus postingan.");
+        throw new Error(result.message);
       }
 
       toast.success("Postingan berhasil dihapus.");
+
       window.location.reload();
     } catch (error: any) {
       toast.error(error.message || "Terjadi kesalahan.");
@@ -139,36 +158,37 @@ const token = useAuthStore((state) => state.token);
 
   return (
     <article
-  className="
-    border-b
-    border-[#2a2a2a]
-
-    px-4
-    py-4
-
-    lg:px-6
-    lg:py-5
-  "
->
+      className="
+        border-b
+        border-[#2a2a2a]
+        px-4
+        py-4
+        lg:px-6
+        lg:py-5
+      "
+    >
       <div className="flex gap-3">
+        {/* Avatar */}
         <div className="relative">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-400 to-green-300 flex items-center justify-center text-white font-bold">
-  {post.user.avatarUrl ? (
-    <img
-      src={post.user.avatarUrl}
-      alt={post.user.name}
-      className="w-full h-full object-cover"
-      onError={(e) => {
-        e.currentTarget.style.display = "none";
-      }}
-    />
-  ) : (
-    post.user.name?.charAt(0).toUpperCase()
-  )}
-</div>
+            {post.user.avatarUrl ? (
+              <img
+                src={post.user.avatarUrl}
+                alt={post.user.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ) : (
+              post.user.name?.charAt(0).toUpperCase()
+            )}
+          </div>
         </div>
 
+        {/* Content */}
         <div className="flex-1">
+          {/* Header */}
           <div className="flex items-center justify-between relative">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-white">
@@ -180,13 +200,22 @@ const token = useAuthStore((state) => state.token);
               </span>
             </div>
 
+            {/* More Button */}
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="text-[#777] hover:text-white"
+              className="
+                text-[#777]
+                hover:text-white
+                transition-all
+                duration-200
+                hover:scale-110
+                active:scale-95
+              "
             >
               <MoreHorizontal size={18} />
             </button>
 
+            {/* Dropdown */}
             {menuOpen && (
               <div className="absolute right-0 top-7 z-20 w-36 rounded-xl border border-[#262626] bg-[#111] overflow-hidden shadow-xl">
                 <button
@@ -194,14 +223,29 @@ const token = useAuthStore((state) => state.token);
                     setEditOpen(true);
                     setMenuOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-[#1a1a1a]"
+                  className="
+                    w-full
+                    text-left
+                    px-4
+                    py-2
+                    text-sm
+                    hover:bg-[#1a1a1a]
+                  "
                 >
                   Edit
                 </button>
 
                 <button
                   onClick={handleDeletePost}
-                  className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#1a1a1a]"
+                  className="
+                    w-full
+                    text-left
+                    px-4
+                    py-2
+                    text-sm
+                    text-red-400
+                    hover:bg-[#1a1a1a]
+                  "
                 >
                   Delete
                 </button>
@@ -209,76 +253,135 @@ const token = useAuthStore((state) => state.token);
             )}
           </div>
 
+          {/* Text */}
           <p className="text-[15px] text-[#f5f5f5] leading-6 mt-1 whitespace-pre-wrap">
             {post.content}
           </p>
 
+          {/* Image */}
           {post.imageUrl && (
             <div
-  className="
-    mt-3
-    rounded-2xl
-    overflow-hidden
-    border
-    border-[#2a2a2a]
-    bg-black
-
-    w-fit
-    max-w-[260px]
-
-    lg:max-w-full
-  "
->
+              className="
+                mt-3
+                rounded-2xl
+                overflow-hidden
+                border
+                border-[#2a2a2a]
+                bg-black
+                w-fit
+                max-w-[260px]
+                lg:max-w-full
+              "
+            >
               <img
-  src={post.imageUrl}
-  alt=""
-  className="
-    block
-    w-auto
-    max-w-full
-    max-h-[360px]
-    object-contain
-  "
-/>
+                src={post.imageUrl}
+                alt=""
+                className="
+                  block
+                  w-auto
+                  max-w-full
+                  max-h-[360px]
+                  object-contain
+                "
+              />
             </div>
           )}
 
-          <div className="flex items-center gap-6 mt-4 text-[#999]">
+          {/* Actions */}
+          <div className="flex items-center gap-6 mt-4">
+            {/* LIKE */}
             <button
               onClick={handleLike}
-              className="flex items-center gap-1 hover:text-red-400"
+              className={`
+                flex
+                items-center
+                gap-1
+                transition-all
+                duration-200
+                hover:scale-110
+                active:scale-95
+                ${
+                  liked
+                    ? "text-[#FF0034]"
+                    : "text-[#999] hover:text-[#FF0034]"
+                }
+              `}
             >
-              <Heart size={20} />
-              <span className="text-sm">{post.likeCount}</span>
+              <Heart
+                size={20}
+                className={liked ? "fill-[#FF0034]" : ""}
+              />
+
+              <span className="text-sm">
+                {likeCount}
+              </span>
             </button>
 
+            {/* COMMENT */}
             <button
               onClick={() => navigate(`/post/${post.id}`)}
-              className="flex items-center gap-1 hover:text-white"
+              className="
+                flex
+                items-center
+                gap-1
+                text-[#999]
+                transition-all
+                duration-200
+                hover:text-white
+                hover:scale-110
+                active:scale-95
+              "
             >
               <MessageCircle size={20} />
-              <span className="text-sm">{post.commentCount}</span>
+
+              <span className="text-sm">
+                {post.commentCount}
+              </span>
             </button>
           </div>
         </div>
       </div>
 
+      {/* Edit Modal */}
       {editOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-4">
           <div className="w-full max-w-md bg-[#111] border border-[#262626] rounded-2xl p-5">
-            <h2 className="text-lg font-bold mb-4">Edit Postingan</h2>
+            <h2 className="text-lg font-bold mb-4">
+              Edit Postingan
+            </h2>
 
             <textarea
               value={editContent}
-              onChange={(e) => setEditContent(e.target.value)}
-              className="w-full min-h-[140px] bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none text-white resize-none"
+              onChange={(e) =>
+                setEditContent(e.target.value)
+              }
+              className="
+                w-full
+                min-h-[140px]
+                bg-[#1a1a1a]
+                border
+                border-[#333]
+                rounded-xl
+                px-4
+                py-3
+                outline-none
+                text-white
+                resize-none
+              "
               placeholder="Tulis postingan..."
             />
 
             <div className="flex gap-3 mt-4">
               <button
                 onClick={() => setEditOpen(false)}
-                className="flex-1 border border-[#333] rounded-xl py-2 hover:bg-[#1a1a1a]"
+                className="
+                  flex-1
+                  border
+                  border-[#333]
+                  rounded-xl
+                  py-2
+                  hover:bg-[#1a1a1a]
+                "
               >
                 Batal
               </button>
@@ -286,9 +389,19 @@ const token = useAuthStore((state) => state.token);
               <button
                 onClick={handleUpdatePost}
                 disabled={saving}
-                className="flex-1 bg-white text-black font-bold rounded-xl py-2 disabled:opacity-60"
+                className="
+                  flex-1
+                  bg-white
+                  text-black
+                  font-bold
+                  rounded-xl
+                  py-2
+                  disabled:opacity-60
+                "
               >
-                {saving ? "Menyimpan..." : "Simpan"}
+                {saving
+                  ? "Menyimpan..."
+                  : "Simpan"}
               </button>
             </div>
           </div>
