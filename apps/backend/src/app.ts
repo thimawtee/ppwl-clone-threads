@@ -787,12 +787,12 @@ if (
   };
 }
 
-    if (!content) {
-      return {
-        success: false,
-        message: "Content wajib diisi",
-      };
-    }
+    if (!content && !imageUrl) {
+  return {
+    success: false,
+    message: "Content atau gambar wajib diisi",
+  };
+}
 
     const postCount = await prisma.post.count({
   where: {
@@ -809,8 +809,8 @@ if (postCount >= 2) {
 
     const post = await prisma.post.create({
       data: {
-        content,
-        imageUrl: imageUrl || null,
+        content: content || "",
+imageUrl: imageUrl || null,
         userId: decoded.userId,
       },
       include: {
