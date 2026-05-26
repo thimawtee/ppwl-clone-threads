@@ -213,7 +213,7 @@ export default function LoggedInSidebar({
         {/* Hamburger */}
         <button
           type="button"
-          onClick={() => setShowMobileMenu(true)}
+          onClick={() => setShowMobileMenu((prev) => !prev)}
           className="
             w-10
             h-10
@@ -247,37 +247,38 @@ export default function LoggedInSidebar({
       {showMobileMenu && (
         <>
           {/* Overlay transparan */}
-          <div
-            className="
-        lg:hidden
-        fixed
-        inset-0
-        z-[60]
-      "
-            onClick={() => setShowMobileMenu(false)}
-          />
+<div
+  className="
+    lg:hidden
+    fixed
+    inset-0
+    z-40
+    bg-transparent
+  "
+  onClick={() => setShowMobileMenu(false)}
+/>
 
-          {/* Small Dropdown */}
-          <div
-            className="
-        lg:hidden
-        fixed
-        top-[62px]
-        left-4
-        z-[70]
+{/* Small Dropdown */}
+<div
+  className="
+    lg:hidden
+    fixed
+    top-[62px]
+    left-4
+    z-50
 
-        w-[180px]
+    w-[180px]
 
-        bg-[#262626]
-        border
-        border-[#333]
+    bg-[#262626]
+    border
+    border-[#333]
 
-        rounded-2xl
-        shadow-2xl
+    rounded-2xl
+    shadow-2xl
 
-        overflow-hidden
-      "
-          >
+    overflow-hidden
+  "
+>
             <button
               type="button"
               onClick={() => {

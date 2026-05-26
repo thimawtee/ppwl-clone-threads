@@ -279,28 +279,10 @@ export default function HomeLoggedInPage() {
       <main className="flex-1 flex justify-center">
         <div className="w-full max-w-[640px]">
           {/* ─── MOBILE VIEW ───────────────── */}
-          <div className="lg:hidden">
-            {/* Header */}
-            <div
-              className="
-                sticky
-                top-0
-                z-40
-                h-[56px]
-                flex
-                items-center
-                justify-center
-                border-b
-                border-[#2a2a2a]
-                bg-[#101010]/90
-                backdrop-blur-xl
-              "
-            >
-              <h1 className="text-[17px] font-semibold">For you</h1>
-            </div>
+         <div className="lg:hidden pt-[56px]">
 
             {/* Posts */}
-            <div className="pb-20">
+           <div className="pb-[84px]">
               {loading ? (
                 <div className="flex justify-center py-16">
                   <div className="w-6 h-6 border-2 border-[#444] border-t-white rounded-full animate-spin" />
@@ -340,9 +322,6 @@ export default function HomeLoggedInPage() {
       <div className="hidden lg:block">
         <FloatingCreateButton onClick={openCreateModal} />
       </div>
-
-      {/* Mobile Bottom Nav */}
-      <MobileBottomNav onCreate={openCreateModal} />
 
       {/* Modal */}
       <CreatePostModal
