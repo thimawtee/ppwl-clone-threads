@@ -88,7 +88,7 @@ export default function LoginPage() {
   (state) => state.isAuthenticated
 );
 
-  const [email, setEmail] = useState("budi@test.com");
+  const [email, setEmail] = useState("siki@test.com");
   const [password, setPassword] = useState("12345678");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
