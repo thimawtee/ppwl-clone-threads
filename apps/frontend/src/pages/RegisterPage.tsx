@@ -15,7 +15,7 @@ function ThreadsLogo() {
 }
 
 function BGText({ side }: { side: "left" | "right" }) {
-  const words = ["THREADS", "THREADS", "THREADS"];
+  const words = ["THREATS", "THREATS", "THREATS"];
 
   return (
     <div
