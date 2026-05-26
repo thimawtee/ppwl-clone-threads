@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "sonner";
@@ -87,10 +87,20 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
 
+  const isAuthenticated = useAuthStore(
+  (state) => state.isAuthenticated
+);
+
   const [email, setEmail] = useState("budi@test.com");
-  const [password, setPassword] = useState("123456");
+  const [password, setPassword] = useState("12345678");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+  if (isAuthenticated) {
+    navigate("/home");
+  }
+}, [isAuthenticated, navigate]);
 
   async function handleLogin() {
     setLoading(true);

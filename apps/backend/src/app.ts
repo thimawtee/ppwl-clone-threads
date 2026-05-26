@@ -123,12 +123,13 @@ const app = new Elysia()
     message: "Login berhasil",
     data: {
       user: {
-        id: user.id,
-        name: user.name,
-        username: user.username,
-        email: user.email,
-        avatarUrl: user.avatarUrl,
-      },
+  id: user.id,
+  name: user.name,
+  username: user.username,
+  email: user.email,
+  avatarUrl: user.avatarUrl,
+  bio: user.bio,
+},
       token: jwt.sign(
   {
     userId: user.id,
@@ -199,7 +200,15 @@ const app = new Elysia()
       message: "Google login berhasil",
       data: {
         token,
-        user,
+        user: {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      bio: user.bio,
+      provider: user.provider,
+    },
       },
     };
   } catch (error) {

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import LoggedInSidebar from "../components/loggedin/LoggedInSidebar";
 import { API_URL } from "../services/api";
+import { useNavigate } from "react-router-dom";
+
 import {
   BarChart3,
   Square as Instagram,
@@ -25,6 +27,18 @@ interface UserProfile {
 }
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
+
+  const isAuthenticated = useAuthStore(
+  (state) => state.isAuthenticated
+);
+
+useEffect(() => {
+  if (!isAuthenticated) {
+    navigate("/login");
+  }
+}, [isAuthenticated, navigate]);
+
   const [user, setUser] = useState<UserProfile | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -68,14 +82,34 @@ const openCreateModal = () => {
   const userAvatar = user?.avatarUrl || "";
 
   async function handleUpdateProfile() {
+  if (!token) {
+    toast.error("Silakan login terlebih dahulu.");
+    return;
+  }
 
-    if (!token) {
-      toast.error("Silakan login terlebih dahulu.");
-      return;
-    }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    try {
-      setSaving(true);
+  if (
+    !form.name.trim() ||
+    !form.username.trim() ||
+    !form.email.trim()
+  ) {
+    toast.error("Nama, username, dan email wajib diisi.");
+    return;
+  }
+
+  if (!emailRegex.test(form.email)) {
+    toast.error("Format email tidak valid.");
+    return;
+  }
+
+  if (form.password.trim() && form.password.length < 8) {
+    toast.error("Password minimal 8 karakter.");
+    return;
+  }
+
+  try {
+    setSaving(true);
     
     let uploadedAvatarUrl = form.avatarUrl || null;
 
@@ -440,12 +474,13 @@ setAuth(result.data, token);
 
               {user?.provider !== "GOOGLE" && (
   <input
-    type="password"
-    value={form.password}
-    onChange={(e) => setForm({ ...form, password: e.target.value })}
-    placeholder="Password baru (opsional)"
-    className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
-  />
+  type="password"
+  value={form.password}
+  onChange={(e) => setForm({ ...form, password: e.target.value })}
+  placeholder="Password baru (opsional)"
+  minLength={8}
+  className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
+/>
 )}
             </div>
 

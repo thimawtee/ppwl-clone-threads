@@ -7,6 +7,7 @@ type User = {
   username: string;
   email: string;
   avatarUrl?: string | null;
+  bio?: string | null;
   provider?: "EMAIL" | "GOOGLE";
 };
 

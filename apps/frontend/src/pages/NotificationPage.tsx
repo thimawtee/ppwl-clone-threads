@@ -142,6 +142,15 @@ function LoginModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: (u
 
 export default function NotificationPage() {
   const navigate = useNavigate();
+  const isAuthenticated = useAuthStore(
+  (state) => state.isAuthenticated
+);
+
+useEffect(() => {
+  if (!isAuthenticated) {
+    navigate("/login");
+  }
+}, [isAuthenticated, navigate]);
   const API = API_URL;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
