@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import LoggedInSidebar from "../components/loggedin/LoggedInSidebar";
@@ -10,12 +9,12 @@ import {
   Square as Instagram,
   MoreHorizontal,
   SquarePen,
-  Pen,
-  Camera,
+  Loader2,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
 import FloatingCreateButton from "@/components/loggedin/FloatingCreateButton";
 import CreatePostModal from "@/components/CreatePostModal";
+import FeedPost from "../components/loggedin/FeedPost";
 
 interface UserProfile {
   id: string;
@@ -25,6 +24,16 @@ interface UserProfile {
   avatarUrl: string | null;
   bio?: string | null;
   provider?: "EMAIL" | "GOOGLE";
+}
+
+interface Post {
+  id: string;
+  content: string;
+  imageUrl: string | null;
+  createdAt: string;
+  user: { id: string };
+  likeCount: number;
+  commentCount: number;
 }
 
 export default function ProfilePage() {
@@ -43,6 +52,9 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [postsLoading, setPostsLoading] = useState(true);
+
   const [form, setForm] = useState({
     name: "",
     username: "",
@@ -51,6 +63,7 @@ export default function ProfilePage() {
     bio: "",
     password: "",
   });
+
   const setAuth = useAuthStore((state) => state.setAuth);
   const authUser = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
@@ -77,6 +90,66 @@ export default function ProfilePage() {
       password: "",
     });
   }, [authUser]);
+
+  useEffect(() => {
+    if (!authUser?.id || !token) return;
+
+    async function fetchUserPosts() {
+      try {
+        setPostsLoading(true);
+
+        const res = await fetch(`${API_URL}/posts`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          // Filter hanya post milik user yang login
+          const myPosts = data.data.filter(
+            (post: any) => post.user.id === authUser!.id,
+          );
+          setUserPosts(myPosts);
+
+          const counts: Record<string, number> = {};
+          myPosts.forEach((p: any) => {
+            counts[p.id] = p.likeCount;
+          });
+        }
+      } catch {
+        toast.error("Gagal mengambil postingan.");
+      } finally {
+        setPostsLoading(false);
+      }
+    }
+
+    fetchUserPosts();
+  }, [authUser?.id, token]);
+
+  // Re-fetch posts setelah modal create ditutup
+  const handleCreateClose = () => {
+    setIsCreateOpen(false);
+
+    if (!authUser?.id || !token) return;
+
+    fetch(`${API_URL}/posts`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success) {
+          const myPosts = data.data.filter(
+            (post: any) => post.user.id === authUser!.id,
+          );
+          setUserPosts(myPosts);
+
+          const counts: Record<string, number> = {};
+          myPosts.forEach((p: any) => {
+            counts[p.id] = p.likeCount;
+          });
+        }
+      })
+      .catch(() => {});
+  };
 
   const userAvatar = user?.avatarUrl || "";
 
@@ -111,22 +184,17 @@ export default function ProfilePage() {
       if (avatarFile) {
         const base64 = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
-
           reader.onload = () => {
             const result = reader.result as string;
-            const cleanBase64 = result.split(",")[1];
-            resolve(cleanBase64);
+            resolve(result.split(",")[1]);
           };
-
           reader.onerror = reject;
           reader.readAsDataURL(avatarFile);
         });
 
         const uploadRes = await fetch(`${API_URL}/upload`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             fileName: avatarFile.name,
             fileType: avatarFile.type,
@@ -191,42 +259,36 @@ export default function ProfilePage() {
   }
 
   return (
-    // 1. Root Wrapper: Kunci ukuran ke viewport dan cegah scroll global
     <div className="w-screen h-dvh bg-black text-white flex overflow-hidden">
       <LoggedInSidebar onCreateThread={openCreateModal} />
 
-     
       <main className="flex-1 h-full overflow-y-auto flex justify-center items-start px-3 md:px-4 py-4 md:py-6 pb-24 bg-black">
-        
-        {/* 3. Card Container: Tambahkan h-fit agar kotak profil tidak melar paksa ke bawah */}
         <div className="w-full max-w-[620px] h-fit border border-[#262626] rounded-[20px] md:rounded-[24px] overflow-hidden bg-black flex flex-col">
+          {/* Header username */}
           <div className="px-4 md:px-6 pt-5 pb-3 flex justify-between items-center">
             <span className="text-base font-semibold tracking-wide">
               {user?.username || "loading..."}
             </span>
-
             <button className="text-[#777777] hover:text-white transition-colors">
               <MoreHorizontal size={22} />
             </button>
           </div>
 
+          {/* Info profil */}
           <div className="px-4 md:px-6 pt-4 pb-2">
             <div className="flex justify-between items-start gap-4">
               <div>
                 <h2 className="text-2xl font-bold tracking-tight text-white">
                   {user?.name || "Loading..."}
                 </h2>
-
                 <p className="text-sm text-[#777777] mt-0.5">
                   {user?.username ? `@${user.username}` : ""}
                 </p>
-
                 {user?.bio && (
                   <p className="text-sm text-white mt-4 max-w-[320px] leading-relaxed">
                     {user.bio}
                   </p>
                 )}
-
                 <p className="text-sm text-[#777777] mt-5">0 pengikut</p>
               </div>
 
@@ -247,12 +309,10 @@ export default function ProfilePage() {
                     </span>
                   )}
                 </div>
-
                 <div className="flex items-center gap-3 text-[#ffffff]">
                   <button className="p-1 rounded-full hover:bg-[#121212] transition-colors">
                     <BarChart3 size={20} className="transform rotate-90" />
                   </button>
-
                   <button className="p-1 rounded-full hover:bg-[#121212] transition-colors">
                     <Instagram size={20} />
                   </button>
@@ -268,6 +328,7 @@ export default function ProfilePage() {
             </button>
           </div>
 
+          {/* Tab navigasi */}
           <div className="flex border-b border-[#1f1f1f] mt-4 text-xs md:text-sm font-semibold overflow-x-auto">
             <div className="min-w-[120px] flex-1 text-center pb-3 border-b border-white text-white cursor-pointer">
               Threads
@@ -280,6 +341,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
+          {/* Input buat thread baru */}
           <div className="px-4 md:px-6 py-4 flex items-center justify-between border-b border-[#1f1f1f]">
             <div className="flex items-center gap-3 flex-1">
               <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center shrink-0">
@@ -295,7 +357,6 @@ export default function ProfilePage() {
                   </span>
                 )}
               </div>
-
               <input
                 type="text"
                 placeholder="What's New?"
@@ -304,7 +365,6 @@ export default function ProfilePage() {
                 className="bg-transparent text-sm text-white placeholder-[#777777] outline-none flex-1 cursor-pointer"
               />
             </div>
-
             <button
               onClick={openCreateModal}
               className="border border-[#262626] px-4 py-1.5 rounded-xl text-sm font-semibold text-white bg-black hover:bg-[#121212] transition-colors"
@@ -312,98 +372,59 @@ export default function ProfilePage() {
               Post
             </button>
           </div>
-
-          <div className="px-4 md:px-6 py-5">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-bold text-white">
-                Selesaikan profil Anda
-              </h3>
-
-              <span className="text-xs text-[#777777] font-medium">
-                3 tersisa
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 flex flex-col items-center text-center justify-between min-h-[180px] md:min-h-[200px]">
-                <div className="flex flex-col items-center">
-                  <div className="w-11 h-11 rounded-full border border-[#262626] flex items-center justify-center mb-3">
-                    <SquarePen size={18} className="text-white" />
-                  </div>
-
-                  <h4 className="text-xs font-bold text-white mb-1">
-                    Create thread
-                  </h4>
-
-                  <p className="text-[11px] text-[#777777] leading-normal px-1">
-                    Say what's on your mind or share a recent highlight.
-                  </p>
-                </div>
-
+          <div className="pb-2">
+            {postsLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 size={24} className="animate-spin text-[#555]" />
+              </div>
+            ) : userPosts.length === 0 ? (
+              // Empty state
+              <div className="flex flex-col items-center justify-center py-14 text-center px-6">
+                <SquarePen size={32} className="text-[#444] mb-3" />
+                <p className="text-sm font-semibold text-white mb-1">
+                  Belum ada thread
+                </p>
+                <p className="text-xs text-[#777777] mb-5 leading-relaxed">
+                  Bagikan apa yang ada di pikiranmu.
+                </p>
                 <button
                   onClick={openCreateModal}
-                  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
+                  className="bg-white text-black text-xs font-bold px-6 py-2 rounded-xl hover:bg-[#e6e6e6] transition-colors"
                 >
-                  Create
+                  Buat thread
                 </button>
               </div>
-
-              <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 flex flex-col items-center text-center justify-between min-h-[180px] md:min-h-[200px]">
-                <div className="flex flex-col items-center">
-                  <div className="w-11 h-11 rounded-full border border-[#262626] flex items-center justify-center mb-3">
-                    <Camera size={18} className="text-white" />
-                  </div>
-
-                  <h4 className="text-xs font-bold text-white mb-1">
-                    Add profile photo
-                  </h4>
-
-                  <p className="text-[11px] text-[#777777] leading-normal px-1">
-                    Make it easy for people to recognize you.
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setEditOpen(true)}
-                  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
-                >
-                  Add
-                </button>
-              </div>
-
-              <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 flex flex-col items-center text-center justify-between min-h-[180px] md:min-h-[200px]">
-                <div className="flex flex-col items-center">
-                  <div className="w-11 h-11 rounded-full border border-[#262626] flex items-center justify-center mb-3">
-                    <Pen size={16} className="text-white" />
-                  </div>
-
-                  <h4 className="text-xs font-bold text-white mb-1">Add bio</h4>
-
-                  <p className="text-[11px] text-[#777777] leading-normal px-1">
-                    Introduce yourself and tell people what you're into.
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setEditOpen(true)}
-                  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
-                >
-                  Add
-                </button>
-              </div>
-            </div>
+            ) : (
+              // List postingan
+              userPosts.map((post) => (
+                <FeedPost
+                  key={post.id}
+                  post={{
+                    ...post,
+                    user: {
+                      id: user?.id ?? "",
+                      name: user?.name ?? "",
+                      username: user?.username ?? "",
+                      avatarUrl: user?.avatarUrl ?? null,
+                    },
+                  }}
+                />
+              ))
+            )}
           </div>
         </div>
       </main>
 
-      <FloatingCreateButton onClick={openCreateModal} />
+      <div className="hidden lg:block">
+        <FloatingCreateButton onClick={openCreateModal} />
+      </div>
 
+      {/* Modal edit profil */}
       {editOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-4">
           <div className="w-full max-w-md bg-[#111] border border-[#262626] rounded-2xl p-5">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Edit Profil</h2>
-
               <button
                 onClick={() => setEditOpen(false)}
                 className="text-[#777] hover:text-white"
@@ -419,37 +440,29 @@ export default function ProfilePage() {
                 placeholder="Nama"
                 className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
               />
-
               <input
                 value={form.username}
                 onChange={(e) => setForm({ ...form, username: e.target.value })}
                 placeholder="Username"
                 className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
               />
-
               <input
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="Email"
                 className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
               />
-
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-
                   setAvatarFile(file);
-                  setForm({
-                    ...form,
-                    avatarUrl: URL.createObjectURL(file),
-                  });
+                  setForm({ ...form, avatarUrl: URL.createObjectURL(file) });
                 }}
                 className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
               />
-
               <textarea
                 value={form.bio}
                 onChange={(e) => setForm({ ...form, bio: e.target.value })}
@@ -457,7 +470,6 @@ export default function ProfilePage() {
                 rows={3}
                 className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none resize-none"
               />
-
               {user?.provider !== "GOOGLE" && (
                 <input
                   type="password"
@@ -479,7 +491,6 @@ export default function ProfilePage() {
               >
                 Batal
               </button>
-
               <button
                 onClick={handleUpdateProfile}
                 disabled={saving}
@@ -491,10 +502,8 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-      <CreatePostModal
-        open={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-      />
+
+      <CreatePostModal open={isCreateOpen} onClose={handleCreateClose} />
     </div>
   );
 }
