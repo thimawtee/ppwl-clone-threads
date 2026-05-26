@@ -262,7 +262,7 @@ export default function ProfilePage() {
     <div className="w-screen h-dvh bg-[#101010] text-white flex overflow-hidden">
       <LoggedInSidebar onCreateThread={openCreateModal} />
 
-      <main className="flex-1 h-full overflow-y-auto flex justify-center items-start px-3 md:px-4 py-4 md:py-6 pb-24 bg-[#101010]">
+      <main className="flex-1 h-full overflow-y-auto flex justify-center items-start px-3 md:px-4 pt-20 md:pt-6 pb-24 bg-[#101010]">
         <div className="w-full max-w-[620px] h-fit border border-[#262626] rounded-[20px] md:rounded-[24px] overflow-hidden bg-[#101010] flex flex-col">
           {/* Header username */}
           <div className="px-4 md:px-6 pt-5 pb-3 flex justify-between items-center">
