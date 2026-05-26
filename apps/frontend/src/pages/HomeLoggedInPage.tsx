@@ -292,10 +292,13 @@ export default function HomeLoggedInPage() {
                   Belum ada postingan.
                 </div>
               ) : (
-                posts.map((post) => (
-                  <MobilePostCard key={post.id} post={post} />
-                ))
-              )}
+  posts.map((post) => (
+    <FeedPost
+      key={post.id}
+      post={post}
+    />
+  ))
+)}
             </div>
           </div>
 
