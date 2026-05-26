@@ -1,7 +1,9 @@
-import { Home, Plus, Heart, User, Menu } from "lucide-react";
+import { Home, Plus, Heart, User, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { useAuthStore } from "../../stores/auth.store";
+
+import ThreadsLogo from "../../assets/images/logo-threads-no-login.png";
 
 interface LoggedInSidebarProps {
   onCreateThread: () => void;
@@ -11,47 +13,120 @@ export default function LoggedInSidebar({
   onCreateThread,
 }: LoggedInSidebarProps) {
   const location = useLocation();
+
   const [showMenu, setShowMenu] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
+
   const logout = useAuthStore((state) => state.logout);
 
   return (
-    <aside
-      className="
-        hidden
-        lg:flex
-        flex-col
-        w-[260px]
-        h-screen
-        sticky
-        top-0
-        px-5
-        py-6
-        border-r
-        border-[#1f1f1f]
-      "
-    >
-      {/* TOP SECTION */}
-      <div>
-        <h1 className="text-[42px] font-bold tracking-tight mb-10">
-          @threads
-        </h1>
+    <>
+      {/* ========================= */}
+      {/* DESKTOP SIDEBAR */}
+      {/* ========================= */}
+      <aside
+        className="
+          hidden
+          lg:flex
+          flex-col
+          w-[260px]
+          h-screen
+          sticky
+          top-0
+          border-r
+          border-[#1f1f1f]
+          overflow-hidden
+        "
+      >
+        {/* SCROLLABLE CONTENT */}
+        <div
+          className="
+            flex-1
+            overflow-y-auto
+            px-5
+            py-6
+          "
+        >
+          {/* TOP SECTION */}
+          <div>
+            <h1 className="text-[42px] font-bold tracking-tight mb-10">
+              @threads
+            </h1>
 
-        <nav className="space-y-1">
-          <Link
-            to="/home"
-            className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${
-              location.pathname === "/home"
-                ? "bg-[#1f1f1f] text-white font-medium"
-                : "hover:bg-[#111]"
-            }`}
-          >
-            <Home size={22} />
-            For you
-          </Link>
+            <nav className="space-y-1">
+              <Link
+                to="/home"
+                className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${
+                  location.pathname === "/home"
+                    ? "bg-[#1f1f1f] text-white font-medium"
+                    : "hover:bg-[#111]"
+                }`}
+              >
+                <Home size={22} />
+                For you
+              </Link>
 
+              <button
+                type="button"
+                onClick={onCreateThread}
+                className="
+                  w-full
+                  flex
+                  items-center
+                  gap-4
+                  px-4
+                  py-3
+                  rounded-2xl
+                  hover:bg-[#111]
+                  transition-colors
+                "
+              >
+                <Plus size={22} />
+                New thread
+              </button>
+
+              <Link
+                to="/activity"
+                className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${
+                  location.pathname === "/activity"
+                    ? "bg-[#1f1f1f] text-white font-medium"
+                    : "hover:bg-[#111]"
+                }`}
+              >
+                <Heart size={22} />
+                Activity
+              </Link>
+
+              <Link
+                to="/profile"
+                className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${
+                  location.pathname === "/profile"
+                    ? "bg-[#1f1f1f] text-white font-medium"
+                    : "hover:bg-[#111]"
+                }`}
+              >
+                <User size={22} />
+                Profile
+              </Link>
+            </nav>
+          </div>
+        </div>
+
+        {/* STICKY BOTTOM SECTION */}
+        <div
+          className="
+            relative
+            px-5
+            py-4
+            border-t
+            border-[#1f1f1f]
+            bg-black
+            shrink-0
+          "
+        >
           <button
             type="button"
-            onClick={onCreateThread}
+            onClick={() => setShowMenu((prev) => !prev)}
             className="
               w-full
               flex
@@ -64,72 +139,149 @@ export default function LoggedInSidebar({
               transition-colors
             "
           >
-            <Plus size={22} />
-            New thread
+            <Menu size={22} />
+            More
           </button>
 
-          <Link
-            to="/activity"
-            className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${
-              location.pathname === "/activity"
-                ? "bg-[#1f1f1f] text-white font-medium"
-                : "hover:bg-[#111]"
-            }`}
-          >
-            <Heart size={22} />
-            Activity
-          </Link>
+          {showMenu && (
+            <div
+              className="
+                absolute
+                bottom-[78px]
+                left-5
+                right-5
+                bg-[#181818]
+                border
+                border-[#2a2a2a]
+                rounded-2xl
+                overflow-hidden
+                shadow-xl
+              "
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  window.location.href = "/login";
+                }}
+                className="
+                  w-full
+                  text-left
+                  px-4
+                  py-3
+                  text-red-400
+                  hover:bg-[#222]
+                  transition-colors
+                "
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      </aside>
 
-          <Link
-            to="/profile"
-            className={`w-full flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${
-              location.pathname === "/profile"
-                ? "bg-[#1f1f1f] text-white font-medium"
-                : "hover:bg-[#111]"
-            }`}
-          >
-            <User size={22} />
-            Profile
-          </Link>
-        </nav>
-      </div>
-
-      {/* BOTTOM SECTION */}
-      <div className="mt-auto relative pt-6">
+      {/* ========================= */}
+      {/* MOBILE HEADER */}
+      {/* ========================= */}
+      <header
+        className="
+          lg:hidden
+          fixed
+          top-0
+          left-0
+          right-0
+          z-50
+          h-[60px]
+          bg-black
+          border-b
+          border-[#1f1f1f]
+          flex
+          items-center
+          justify-between
+          px-4
+        "
+      >
+        {/* Hamburger */}
         <button
           type="button"
-          onClick={() => setShowMenu((prev) => !prev)}
+          onClick={() => setShowMobileMenu(true)}
           className="
-            w-full
+            w-10
+            h-10
             flex
             items-center
-            gap-4
-            px-4
-            py-3
-            rounded-2xl
+            justify-center
+            rounded-full
             hover:bg-[#111]
             transition-colors
           "
         >
-          <Menu size={22} />
-          More
+          <Menu size={24} />
         </button>
 
-        {showMenu && (
+        {/* Logo */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <img src={ThreadsLogo} alt="Threads" className="h-7 object-contain" />
+        </div>
+
+        {/* Empty spacing */}
+        <div className="w-10" />
+      </header>
+
+      {/* ========================= */}
+      {/* MOBILE DROPDOWN MENU */}
+      {/* ========================= */}
+      {showMobileMenu && (
+        <div
+          className="
+            lg:hidden
+            fixed
+            inset-0
+            z-[60]
+            bg-black/70
+            backdrop-blur-sm
+          "
+        >
           <div
             className="
               absolute
-              bottom-16
+              top-0
               left-0
-              w-full
-              bg-[#181818]
-              border
-              border-[#2a2a2a]
-              rounded-2xl
-              overflow-hidden
-              shadow-xl
+              h-full
+              w-[280px]
+              bg-black
+              border-r
+              border-[#1f1f1f]
+              p-5
             "
           >
+            {/* Top */}
+            <div className="flex items-center justify-between mb-8">
+              <img
+                src={ThreadsLogo}
+                alt="Threads"
+                className="h-7 object-contain"
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowMobileMenu(false)}
+                className="
+                  w-10
+                  h-10
+                  rounded-full
+                  flex
+                  items-center
+                  justify-center
+                  hover:bg-[#111]
+                "
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            {/* Logout */}
             <button
               type="button"
               onClick={() => {
@@ -141,16 +293,109 @@ export default function LoggedInSidebar({
                 text-left
                 px-4
                 py-3
+                rounded-2xl
                 text-red-400
-                hover:bg-[#222]
+                hover:bg-[#111]
                 transition-colors
               "
             >
               Logout
             </button>
           </div>
-        )}
-      </div>
-    </aside>
+        </div>
+      )}
+
+      {/* ========================= */}
+      {/* MOBILE BOTTOM NAVBAR */}
+      {/* ========================= */}
+      <nav
+        className="
+    lg:hidden
+    fixed
+    bottom-0
+    left-0
+    right-0
+    z-50
+    h-[68px]
+    bg-black
+    border-t
+    border-[#1f1f1f]
+    flex
+    items-center
+    justify-around
+    px-2
+  "
+      >
+        {/* Home */}
+        <Link
+          to="/home"
+          className={`
+      flex
+      flex-col
+      items-center
+      justify-center
+      gap-1
+      w-[70px]
+      transition-opacity
+      ${location.pathname === "/home" ? "opacity-100" : "opacity-50"}
+    `}
+        >
+          <Home size={24} />
+        </Link>
+
+        {/* Create Thread */}
+        <button
+          type="button"
+          onClick={onCreateThread}
+          className="
+      flex
+      flex-col
+      items-center
+      justify-center
+      gap-1
+      w-[70px]
+      transition-opacity
+      opacity-50
+      active:scale-95
+    "
+        >
+          <Plus size={28} strokeWidth={2.5} />
+        </button>
+
+        {/* Activity */}
+        <Link
+          to="/activity"
+          className={`
+      flex
+      flex-col
+      items-center
+      justify-center
+      gap-1
+      w-[70px]
+      transition-opacity
+      ${location.pathname === "/activity" ? "opacity-100" : "opacity-50"}
+    `}
+        >
+          <Heart size={24} />
+        </Link>
+
+        {/* Profile */}
+        <Link
+          to="/profile"
+          className={`
+      flex
+      flex-col
+      items-center
+      justify-center
+      gap-1
+      w-[70px]
+      transition-opacity
+      ${location.pathname === "/profile" ? "opacity-100" : "opacity-50"}
+    `}
+        >
+          <User size={24} />
+        </Link>
+      </nav>
+    </>
   );
 }

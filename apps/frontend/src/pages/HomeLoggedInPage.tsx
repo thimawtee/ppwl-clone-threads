@@ -83,7 +83,9 @@ export default function HomeLoggedInPage() {
         </div>
       </main>
 
-      <FloatingCreateButton onClick={openCreateModal} />
+      <div className="hidden lg:block">
+  <FloatingCreateButton onClick={openCreateModal} />
+</div>
 
       <CreatePostModal
         open={isCreateOpen}
