@@ -536,16 +536,10 @@ export default function CreatePostModal({ open, onClose }: Props) {
           {/* FOOTER */}
           <div
   className="
-    min-h-[72px]
-    border-t
-    border-[#1f1f1f]
-    px-4
-    flex
-    items-center
-    justify-end
-    shrink-0
-    bg-[#0f0f0f]
-    pb-[env(safe-area-inset-bottom)]
+    fixed
+    right-4
+    bottom-[calc(env(safe-area-inset-bottom)+64px)]
+    z-[120]
   "
 >
             <button
