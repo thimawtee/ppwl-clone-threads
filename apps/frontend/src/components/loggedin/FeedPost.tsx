@@ -1,9 +1,5 @@
 import { useState } from "react";
-import {
-  Heart,
-  MessageCircle,
-  MoreHorizontal,
-} from "lucide-react";
+import { Heart, MessageCircle, MoreHorizontal } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { API_URL } from "../../services/api";
@@ -48,36 +44,36 @@ export default function FeedPost({ post }: { post: Post }) {
 
   const [liked, setLiked] = useState(post.isLiked || false);
   const [likeCount, setLikeCount] = useState(post.likeCount);
+  const [imageOpen, setImageOpen] = useState(false);
 
   const token = useAuthStore((state) => state.token);
 
   async function handleLike() {
-  if (!token) {
-    navigate("/login");
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_URL}/posts/${post.id}/like`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    const result = await res.json();
-
-    if (!result.success) {
-      throw new Error(result.message || "Gagal like postingan");
+    if (!token) {
+      navigate("/login");
+      return;
     }
 
-    setLiked(result.liked);
-setLikeCount(result.likeCount);
+    try {
+      const res = await fetch(`${API_URL}/posts/${post.id}/like`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  } catch (error: any) {
-    toast.error(error.message || "Terjadi kesalahan.");
+      const result = await res.json();
+
+      if (!result.success) {
+        throw new Error(result.message || "Gagal like postingan");
+      }
+
+      setLiked(result.liked);
+      setLikeCount(result.likeCount);
+    } catch (error: any) {
+      toast.error(error.message || "Terjadi kesalahan.");
+    }
   }
-}
 
   async function handleUpdatePost() {
     if (!token) {
@@ -123,9 +119,7 @@ setLikeCount(result.likeCount);
   }
 
   async function handleDeletePost() {
-    const confirmDelete = confirm(
-      "Yakin ingin menghapus postingan ini?"
-    );
+    const confirmDelete = confirm("Yakin ingin menghapus postingan ini?");
 
     if (!confirmDelete) return;
 
@@ -260,31 +254,113 @@ setLikeCount(result.likeCount);
 
           {/* Image */}
           {post.imageUrl && (
-            <div
-              className="
-                mt-3
-                rounded-2xl
-                overflow-hidden
-                border
-                border-[#2a2a2a]
-                bg-black
-                w-fit
-                max-w-[260px]
-                lg:max-w-full
-              "
-            >
-              <img
-                src={post.imageUrl}
-                alt=""
+            <>
+              <div
+                onClick={() => setImageOpen(true)}
                 className="
-                  block
-                  w-auto
-                  max-w-full
-                  max-h-[360px]
-                  object-contain
-                "
-              />
-            </div>
+        mt-3
+        rounded-2xl
+        overflow-hidden
+        border
+        border-[#2a2a2a]
+        bg-black
+        w-fit
+        max-w-[260px]
+        lg:max-w-full
+        cursor-pointer
+        transition-all
+        duration-200
+        hover:scale-[1.01]
+      "
+              >
+                <img
+                  src={post.imageUrl}
+                  alt=""
+                  className="
+          block
+          w-auto
+          max-w-full
+          max-h-[360px]
+          object-contain
+        "
+                />
+              </div>
+
+              {/* IMAGE POPUP */}
+              {imageOpen && (
+                <div
+                  className="
+          fixed
+          inset-0
+          z-[999]
+          bg-black
+          flex
+          items-center
+          justify-center
+          p-4
+        "
+                >
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setImageOpen(false)}
+                    className="
+    absolute
+    top-6
+    left-6
+    z-50
+
+    w-11
+    h-11
+
+    flex
+    items-center
+    justify-center
+
+    rounded-full
+
+    bg-[#0f0f0f]/72
+    backdrop-blur-xl
+
+    text-white
+
+    hover:bg-[#1a1a1a]/80
+    active:scale-95
+
+    transition-all
+    duration-200
+  "
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="opacity-45"
+                    >
+                      <path d="M18 6L6 18" />
+                      <path d="M6 6L18 18" />
+                    </svg>
+                  </button>
+
+                  {/* Image */}
+                  <img
+                    src={post.imageUrl}
+                    alt=""
+                    className="
+            max-w-full
+            max-h-full
+            object-contain
+            rounded-xl
+          "
+                  />
+                </div>
+              )}
+            </>
           )}
 
           {/* Actions */}
@@ -300,21 +376,12 @@ setLikeCount(result.likeCount);
                 duration-200
                 hover:scale-110
                 active:scale-95
-                ${
-                  liked
-                    ? "text-[#FF0034]"
-                    : "text-[#999] hover:text-[#FF0034]"
-                }
+                ${liked ? "text-[#FF0034]" : "text-[#999] hover:text-[#FF0034]"}
               `}
             >
-              <Heart
-                size={20}
-                className={liked ? "fill-[#FF0034]" : ""}
-              />
+              <Heart size={20} className={liked ? "fill-[#FF0034]" : ""} />
 
-              <span className="text-sm">
-                {likeCount}
-              </span>
+              <span className="text-sm">{likeCount}</span>
             </button>
 
             {/* COMMENT */}
@@ -334,9 +401,7 @@ setLikeCount(result.likeCount);
             >
               <MessageCircle size={20} />
 
-              <span className="text-sm">
-                {post.commentCount}
-              </span>
+              <span className="text-sm">{post.commentCount}</span>
             </button>
           </div>
         </div>
@@ -346,15 +411,11 @@ setLikeCount(result.likeCount);
       {editOpen && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-4">
           <div className="w-full max-w-md bg-[#111] border border-[#262626] rounded-2xl p-5">
-            <h2 className="text-lg font-bold mb-4">
-              Edit Postingan
-            </h2>
+            <h2 className="text-lg font-bold mb-4">Edit Postingan</h2>
 
             <textarea
               value={editContent}
-              onChange={(e) =>
-                setEditContent(e.target.value)
-              }
+              onChange={(e) => setEditContent(e.target.value)}
               className="
                 w-full
                 min-h-[140px]
@@ -399,9 +460,7 @@ setLikeCount(result.likeCount);
                   disabled:opacity-60
                 "
               >
-                {saving
-                  ? "Menyimpan..."
-                  : "Simpan"}
+                {saving ? "Menyimpan..." : "Simpan"}
               </button>
             </div>
           </div>

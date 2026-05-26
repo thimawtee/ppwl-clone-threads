@@ -110,6 +110,8 @@ function PostCard({
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likeCount);
 
+  const [imageOpen, setImageOpen] = useState(false);
+
   async function handleLike() {
     if (!isLoggedIn || !token) {
       onLoginRequired();
@@ -171,58 +173,138 @@ function PostCard({
 
           {/* Image */}
           {post.imageUrl && (
-            <div className="mt-3">
-              <div
-                className="
-        rounded-2xl
-        overflow-hidden
-        border
-        border-[#2a2a2a]
-        bg-black
-
-        w-fit
-
-        max-w-[260px]
-        lg:max-w-[300px]
-      "
-              >
-                <img
-                  src={post.imageUrl}
-                  alt="Post"
+            <>
+              <div className="mt-3">
+                <div
+                  onClick={() => setImageOpen(true)}
                   className="
-          block
-          w-auto
-          max-w-full
+          rounded-2xl
+          overflow-hidden
+          border
+          border-[#2a2a2a]
+          bg-black
 
-          max-h-[360px]
+          w-fit
 
-          object-contain
+          max-w-[260px]
+          lg:max-w-[300px]
+
+          cursor-pointer
         "
-                />
+                >
+                  <img
+                    src={post.imageUrl}
+                    alt="Post"
+                    className="
+            block
+            w-auto
+            max-w-full
+            max-h-[360px]
+            object-contain
+            transition-transform
+            duration-300
+            hover:scale-[1.02]
+          "
+                  />
+                </div>
               </div>
-            </div>
+
+              {/* IMAGE POPUP */}
+              {imageOpen && (
+                <div
+                  className="
+          fixed
+          inset-0
+          z-[999]
+          bg-black
+          flex
+          items-center
+          justify-center
+          p-4
+        "
+                >
+                  {/* CLOSE BUTTON */}
+                  <button
+                    onClick={() => setImageOpen(false)}
+                    className="
+    absolute
+    top-6
+    left-6
+    z-50
+
+    w-11
+    h-11
+
+    flex
+    items-center
+    justify-center
+
+    rounded-full
+
+    bg-[#0f0f0f]/72
+    backdrop-blur-xl
+
+    text-white
+
+    hover:bg-[#1a1a1a]/80
+    active:scale-95
+
+    transition-all
+    duration-200
+  "
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="22"
+                      height="22"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="opacity-45"
+                    >
+                      <path d="M18 6L6 18" />
+                      <path d="M6 6L18 18" />
+                    </svg>
+                  </button>
+
+                  {/* IMAGE */}
+                  <img
+                    src={post.imageUrl}
+                    alt="Preview"
+                    className="
+            max-w-full
+            max-h-full
+            object-contain
+          "
+                  />
+                </div>
+              )}
+            </>
           )}
 
           {/* Actions */}
           <div className="flex items-center gap-4 mt-3">
             <button
-  onClick={handleLike}
-  className={`flex items-center gap-1 transition-colors ${
-    liked ? "text-rose-500" : "text-[#777] hover:text-white"
-  }`}
->
-  <Heart size={18} className={liked ? "fill-rose-500" : ""} />
-  <span className="text-xs">{likeCount}</span>
-</button>
+              onClick={handleLike}
+              className={`flex items-center gap-1 transition-colors ${
+                liked ? "text-rose-500" : "text-[#777] hover:text-white"
+              }`}
+            >
+              <Heart size={18} className={liked ? "fill-rose-500" : ""} />
+              <span className="text-xs">{likeCount}</span>
+            </button>
 
             {/* Comment */}
-           <button
-  onClick={onCommentClick}
-  className="flex items-center gap-1 text-[#777] hover:text-white transition-colors"
->
-  <MessageCircle size={18} />
-  <span className="text-xs">{post.commentCount}</span>
-</button>
+            <button
+              onClick={onCommentClick}
+              className="flex items-center gap-1 text-[#777] hover:text-white transition-colors"
+            >
+              <MessageCircle size={18} />
+              <span className="text-xs">{post.commentCount}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -482,16 +564,12 @@ export default function BerandaPage() {
       const data = await res.json();
 
       if (!data.success) {
-        throw new Error(
-          data.message || "Gagal mengambil detail postingan"
-        );
+        throw new Error(data.message || "Gagal mengambil detail postingan");
       }
 
       setSelectedPost(data.data);
     } catch (error: any) {
-      toast.error(
-        error.message || "Gagal membuka detail postingan"
-      );
+      toast.error(error.message || "Gagal membuka detail postingan");
     }
   }
 
