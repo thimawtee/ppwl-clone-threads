@@ -6,7 +6,7 @@ import { GoogleLogin } from "@react-oauth/google";
 import { jwtDecode } from "jwt-decode";
 import { API_URL } from "../services/api";
 import { useAuthStore } from "../stores/auth.store";
-import logoThreads from "../assets/images/logo-threads-no-login.png";
+import logoThreads from "../assets/images/logo-threads-no-login-no-text.png";
 
 function ThreadsLogo() {
   return (

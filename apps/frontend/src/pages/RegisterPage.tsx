@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../services/api";
-import logoThreads from "../assets/images/logo-threads-no-login.png";
+import logoThreads from "../assets/images/logo-threads-no-login-no-text.png";
 
 function ThreadsLogo() {
   return (
