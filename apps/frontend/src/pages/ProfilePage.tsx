@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import LoggedInSidebar from "../components/loggedin/LoggedInSidebar";
@@ -29,15 +30,13 @@ interface UserProfile {
 export default function ProfilePage() {
   const navigate = useNavigate();
 
-  const isAuthenticated = useAuthStore(
-  (state) => state.isAuthenticated
-);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-useEffect(() => {
-  if (!isAuthenticated) {
-    navigate("/login");
-  }
-}, [isAuthenticated, navigate]);
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
 
   const [user, setUser] = useState<UserProfile | null>(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -54,114 +53,110 @@ useEffect(() => {
   });
   const setAuth = useAuthStore((state) => state.setAuth);
   const authUser = useAuthStore((state) => state.user);
-const token = useAuthStore((state) => state.token);
-const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const token = useAuthStore((state) => state.token);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-const openCreateModal = () => {
-  setIsCreateOpen(true);
-};
+  const openCreateModal = () => {
+    setIsCreateOpen(true);
+  };
 
   useEffect(() => {
-  if (!authUser) return;
+    if (!authUser) return;
 
-  setUser({
-  ...authUser,
-  avatarUrl: authUser.avatarUrl ?? null,
-});
+    setUser({
+      ...authUser,
+      avatarUrl: authUser.avatarUrl ?? null,
+    });
 
-  setForm({
-    name: authUser.name || "",
-    username: authUser.username || "",
-    email: authUser.email || "",
-    avatarUrl: authUser.avatarUrl || "",
-    bio: (authUser as any).bio || "",
-    password: "",
-  });
-}, [authUser]);
+    setForm({
+      name: authUser.name || "",
+      username: authUser.username || "",
+      email: authUser.email || "",
+      avatarUrl: authUser.avatarUrl || "",
+      bio: (authUser as any).bio || "",
+      password: "",
+    });
+  }, [authUser]);
 
   const userAvatar = user?.avatarUrl || "";
 
   async function handleUpdateProfile() {
-  if (!token) {
-    toast.error("Silakan login terlebih dahulu.");
-    return;
-  }
+    if (!token) {
+      toast.error("Silakan login terlebih dahulu.");
+      return;
+    }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (
-    !form.name.trim() ||
-    !form.username.trim() ||
-    !form.email.trim()
-  ) {
-    toast.error("Nama, username, dan email wajib diisi.");
-    return;
-  }
+    if (!form.name.trim() || !form.username.trim() || !form.email.trim()) {
+      toast.error("Nama, username, dan email wajib diisi.");
+      return;
+    }
 
-  if (!emailRegex.test(form.email)) {
-    toast.error("Format email tidak valid.");
-    return;
-  }
+    if (!emailRegex.test(form.email)) {
+      toast.error("Format email tidak valid.");
+      return;
+    }
 
-  if (form.password.trim() && form.password.length < 8) {
-    toast.error("Password minimal 8 karakter.");
-    return;
-  }
+    if (form.password.trim() && form.password.length < 8) {
+      toast.error("Password minimal 8 karakter.");
+      return;
+    }
 
-  try {
-    setSaving(true);
-    
-    let uploadedAvatarUrl = form.avatarUrl || null;
+    try {
+      setSaving(true);
 
-if (avatarFile) {
-  const base64 = await new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
+      let uploadedAvatarUrl = form.avatarUrl || null;
 
-    reader.onload = () => {
-      const result = reader.result as string;
-      const cleanBase64 = result.split(",")[1];
-      resolve(cleanBase64);
-    };
+      if (avatarFile) {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
 
-    reader.onerror = reject;
-    reader.readAsDataURL(avatarFile);
-  });
+          reader.onload = () => {
+            const result = reader.result as string;
+            const cleanBase64 = result.split(",")[1];
+            resolve(cleanBase64);
+          };
 
-  const uploadRes = await fetch(`${API_URL}/upload`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      fileName: avatarFile.name,
-      fileType: avatarFile.type,
-      base64,
-    }),
-  });
+          reader.onerror = reject;
+          reader.readAsDataURL(avatarFile);
+        });
 
-  const uploadData = await uploadRes.json();
+        const uploadRes = await fetch(`${API_URL}/upload`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            fileName: avatarFile.name,
+            fileType: avatarFile.type,
+            base64,
+          }),
+        });
 
-  if (!uploadData.success) {
-    throw new Error(uploadData.message || "Gagal upload foto profil.");
-  }
+        const uploadData = await uploadRes.json();
 
-  uploadedAvatarUrl = uploadData.data.url;
-}
+        if (!uploadData.success) {
+          throw new Error(uploadData.message || "Gagal upload foto profil.");
+        }
+
+        uploadedAvatarUrl = uploadData.data.url;
+      }
 
       const body: {
-  name: string;
-  username: string;
-  email: string;
-  avatarUrl: string | null;
-  bio: string | null;
-  password?: string;
-} = {
-  name: form.name,
-  username: form.username,
-  email: form.email,
-  avatarUrl: uploadedAvatarUrl,
-  bio: form.bio || null,
-};
+        name: string;
+        username: string;
+        email: string;
+        avatarUrl: string | null;
+        bio: string | null;
+        password?: string;
+      } = {
+        name: form.name,
+        username: form.username,
+        email: form.email,
+        avatarUrl: uploadedAvatarUrl,
+        bio: form.bio || null,
+      };
 
       if (form.password.trim()) {
         body.password = form.password;
@@ -183,7 +178,7 @@ if (avatarFile) {
       }
 
       setUser(result.data);
-setAuth(result.data, token);
+      setAuth(result.data, token);
       setEditOpen(false);
       setForm((prev) => ({ ...prev, password: "" }));
 
@@ -196,11 +191,15 @@ setAuth(result.data, token);
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    // 1. Root Wrapper: Kunci ukuran ke viewport dan cegah scroll global
+    <div className="w-screen h-dvh bg-black text-white flex overflow-hidden">
       <LoggedInSidebar onCreateThread={openCreateModal} />
 
-      <main className="flex-1 flex justify-center px-3 md:px-4 py-4 md:py-6 pb-24">
-        <div className="w-full max-w-[620px] border border-[#262626] rounded-[20px] md:rounded-[24px] overflow-hidden bg-black flex flex-col">
+     
+      <main className="flex-1 h-full overflow-y-auto flex justify-center items-start px-3 md:px-4 py-4 md:py-6 pb-24 bg-black">
+        
+        {/* 3. Card Container: Tambahkan h-fit agar kotak profil tidak melar paksa ke bawah */}
+        <div className="w-full max-w-[620px] h-fit border border-[#262626] rounded-[20px] md:rounded-[24px] overflow-hidden bg-black flex flex-col">
           <div className="px-4 md:px-6 pt-5 pb-3 flex justify-between items-center">
             <span className="text-base font-semibold tracking-wide">
               {user?.username || "loading..."}
@@ -214,40 +213,40 @@ setAuth(result.data, token);
           <div className="px-4 md:px-6 pt-4 pb-2">
             <div className="flex justify-between items-start gap-4">
               <div>
-  <h2 className="text-2xl font-bold tracking-tight text-white">
-    {user?.name || "Loading..."}
-  </h2>
+                <h2 className="text-2xl font-bold tracking-tight text-white">
+                  {user?.name || "Loading..."}
+                </h2>
 
-  <p className="text-sm text-[#777777] mt-0.5">
-    {user?.username ? `@${user.username}` : ""}
-  </p>
+                <p className="text-sm text-[#777777] mt-0.5">
+                  {user?.username ? `@${user.username}` : ""}
+                </p>
 
-  {user?.bio && (
-    <p className="text-sm text-white mt-4 max-w-[320px] leading-relaxed">
-      {user.bio}
-    </p>
-  )}
+                {user?.bio && (
+                  <p className="text-sm text-white mt-4 max-w-[320px] leading-relaxed">
+                    {user.bio}
+                  </p>
+                )}
 
-  <p className="text-sm text-[#777777] mt-5">0 pengikut</p>
-</div>
+                <p className="text-sm text-[#777777] mt-5">0 pengikut</p>
+              </div>
 
               <div className="flex flex-col items-end gap-3">
                 <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center">
-  {userAvatar ? (
-    <img
-      src={userAvatar}
-      alt="Avatar"
-      className="w-full h-full object-cover"
-      onError={(e) => {
-        e.currentTarget.style.display = "none";
-      }}
-    />
-  ) : (
-    <span className="text-white text-2xl font-bold">
-      {user?.name?.charAt(0).toUpperCase()}
-    </span>
-  )}
-</div>
+                  {userAvatar ? (
+                    <img
+                      src={userAvatar}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                  ) : (
+                    <span className="text-white text-2xl font-bold">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
 
                 <div className="flex items-center gap-3 text-[#ffffff]">
                   <button className="p-1 rounded-full hover:bg-[#121212] transition-colors">
@@ -279,43 +278,40 @@ setAuth(result.data, token);
             <div className="min-w-[120px] flex-1 text-center pb-3 text-[#777777] cursor-pointer hover:text-white transition-colors">
               Media
             </div>
-            <div className="min-w-[140px] flex-1 text-center pb-3 text-[#777777] cursor-pointer hover:text-white transition-colors">
-              Postingan Ulang
-            </div>
           </div>
 
           <div className="px-4 md:px-6 py-4 flex items-center justify-between border-b border-[#1f1f1f]">
-  <div className="flex items-center gap-3 flex-1">
-    <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center shrink-0">
-  {userAvatar ? (
-    <img
-      src={userAvatar}
-      alt="Mini Avatar"
-      className="w-full h-full object-cover"
-    />
-  ) : (
-    <span className="text-white text-sm font-bold">
-      {user?.name?.charAt(0).toUpperCase()}
-    </span>
-  )}
-</div>
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center shrink-0">
+                {userAvatar ? (
+                  <img
+                    src={userAvatar}
+                    alt="Mini Avatar"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white text-sm font-bold">
+                    {user?.name?.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
 
-    <input
-      type="text"
-      placeholder="What's New?"
-      onFocus={openCreateModal}
-      readOnly
-      className="bg-transparent text-sm text-white placeholder-[#777777] outline-none flex-1 cursor-pointer"
-    />
-  </div>
+              <input
+                type="text"
+                placeholder="What's New?"
+                onFocus={openCreateModal}
+                readOnly
+                className="bg-transparent text-sm text-white placeholder-[#777777] outline-none flex-1 cursor-pointer"
+              />
+            </div>
 
-  <button
-    onClick={openCreateModal}
-    className="border border-[#262626] px-4 py-1.5 rounded-xl text-sm font-semibold text-white bg-black hover:bg-[#121212] transition-colors"
-  >
-    Post
-  </button>
-</div>
+            <button
+              onClick={openCreateModal}
+              className="border border-[#262626] px-4 py-1.5 rounded-xl text-sm font-semibold text-white bg-black hover:bg-[#121212] transition-colors"
+            >
+              Post
+            </button>
+          </div>
 
           <div className="px-4 md:px-6 py-5">
             <div className="flex justify-between items-center mb-4">
@@ -345,11 +341,11 @@ setAuth(result.data, token);
                 </div>
 
                 <button
-  onClick={openCreateModal}
-  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
->
-  Create
-</button>
+                  onClick={openCreateModal}
+                  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
+                >
+                  Create
+                </button>
               </div>
 
               <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 flex flex-col items-center text-center justify-between min-h-[180px] md:min-h-[200px]">
@@ -368,11 +364,11 @@ setAuth(result.data, token);
                 </div>
 
                 <button
-  onClick={() => setEditOpen(true)}
-  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
->
-  Add
-</button>
+                  onClick={() => setEditOpen(true)}
+                  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
+                >
+                  Add
+                </button>
               </div>
 
               <div className="bg-[#121212] border border-[#1f1f1f] rounded-2xl p-4 flex flex-col items-center text-center justify-between min-h-[180px] md:min-h-[200px]">
@@ -381,9 +377,7 @@ setAuth(result.data, token);
                     <Pen size={16} className="text-white" />
                   </div>
 
-                  <h4 className="text-xs font-bold text-white mb-1">
-                    Add bio
-                  </h4>
+                  <h4 className="text-xs font-bold text-white mb-1">Add bio</h4>
 
                   <p className="text-[11px] text-[#777777] leading-normal px-1">
                     Introduce yourself and tell people what you're into.
@@ -391,11 +385,11 @@ setAuth(result.data, token);
                 </div>
 
                 <button
-  onClick={() => setEditOpen(true)}
-  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
->
-  Add
-</button>
+                  onClick={() => setEditOpen(true)}
+                  className="w-full bg-white text-black text-xs font-bold py-2 rounded-xl mt-4 hover:bg-[#e6e6e6] transition-colors"
+                >
+                  Add
+                </button>
               </div>
             </div>
           </div>
@@ -421,67 +415,61 @@ setAuth(result.data, token);
             <div className="flex flex-col gap-3">
               <input
                 value={form.name}
-                onChange={(e) =>
-                  setForm({ ...form, name: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Nama"
                 className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
               />
 
               <input
                 value={form.username}
-                onChange={(e) =>
-                  setForm({ ...form, username: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, username: e.target.value })}
                 placeholder="Username"
                 className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
               />
 
               <input
                 value={form.email}
-                onChange={(e) =>
-                  setForm({ ...form, email: e.target.value })
-                }
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="Email"
                 className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
               />
 
               <input
-  type="file"
-  accept="image/*"
-  onChange={(e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
 
-    setAvatarFile(file);
-    setForm({
-      ...form,
-      avatarUrl: URL.createObjectURL(file),
-    });
-  }}
-  className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
-/>
+                  setAvatarFile(file);
+                  setForm({
+                    ...form,
+                    avatarUrl: URL.createObjectURL(file),
+                  });
+                }}
+                className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
+              />
 
               <textarea
-  value={form.bio}
-  onChange={(e) =>
-    setForm({ ...form, bio: e.target.value })
-  }
-  placeholder="Bio"
-  rows={3}
-  className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none resize-none"
-/>
+                value={form.bio}
+                onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                placeholder="Bio"
+                rows={3}
+                className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none resize-none"
+              />
 
               {user?.provider !== "GOOGLE" && (
-  <input
-  type="password"
-  value={form.password}
-  onChange={(e) => setForm({ ...form, password: e.target.value })}
-  placeholder="Password baru (opsional)"
-  minLength={8}
-  className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
-/>
-)}
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                  placeholder="Password baru (opsional)"
+                  minLength={8}
+                  className="bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none"
+                />
+              )}
             </div>
 
             <div className="flex gap-3 mt-5">
@@ -504,9 +492,9 @@ setAuth(result.data, token);
         </div>
       )}
       <CreatePostModal
-  open={isCreateOpen}
-  onClose={() => setIsCreateOpen(false)}
-/>
+        open={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+      />
     </div>
   );
 }
