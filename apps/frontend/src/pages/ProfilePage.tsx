@@ -263,7 +263,7 @@ export default function ProfilePage() {
       <LoggedInSidebar onCreateThread={openCreateModal} />
 
       <main className="flex-1 h-full overflow-y-auto flex justify-center items-start px-3 md:px-4 pt-20 md:pt-6 pb-24 bg-[#101010]">
-        <div className="w-full max-w-[620px] h-fit border border-[#262626] rounded-[20px] md:rounded-[24px] overflow-hidden bg-[#101010] flex flex-col">
+        <div className="w-full max-w-[620px] h-fit border border-[#262626] rounded-[20px] md:rounded-[24px] overflow-hidden bg-[#0a0a0a] flex flex-col">
           {/* Header username */}
           <div className="px-4 md:px-6 pt-5 pb-3 flex justify-between items-center">
             <span className="text-base font-semibold tracking-wide">
@@ -322,7 +322,7 @@ export default function ProfilePage() {
 
             <button
               onClick={() => setEditOpen(true)}
-              className="w-full mt-4 border border-[#262626] rounded-xl py-2 text-sm font-semibold bg-[#101010] hover:bg-[#121212] transition-colors tracking-wide"
+              className="w-full mt-4 border border-[#262626] rounded-xl py-2 text-sm font-semibold bg-black hover:bg-[#121212] transition-colors tracking-wide"
             >
               Edit profil
             </button>
@@ -367,7 +367,7 @@ export default function ProfilePage() {
             </div>
             <button
               onClick={openCreateModal}
-              className="border border-[#262626] px-4 py-1.5 rounded-xl text-sm font-semibold text-white bg-[#101010] hover:bg-[#121212] transition-colors"
+              className="border border-[#262626] px-4 py-1.5 rounded-xl text-sm font-semibold text-white bg-black hover:bg-[#121212] transition-colors"
             >
               Post
             </button>
@@ -421,7 +421,7 @@ export default function ProfilePage() {
 
       {/* Modal edit profil */}
       {editOpen && (
-        <div className="fixed inset-0 z-50 bg-[#101010]/70 flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-4">
           <div className="w-full max-w-md bg-[#111] border border-[#262626] rounded-2xl p-5">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Edit Profil</h2>
