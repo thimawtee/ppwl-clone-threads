@@ -538,7 +538,7 @@ export default function CreatePostModal({ open, onClose }: Props) {
   className="
     fixed
     right-4
-    bottom-[calc(env(safe-area-inset-bottom)+64px)]
+    bottom-[calc(env(safe-area-inset-bottom)+48px)]
     z-[120]
   "
 >
