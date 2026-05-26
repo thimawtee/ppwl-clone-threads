@@ -98,84 +98,6 @@ function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
   );
 }
 
-// ─── MOBILE POST CARD ──────────────────────────────────────────────────
-
-function MobilePostCard({ post }: { post: Post }) {
-  return (
-    <article className="px-4 py-4 border-b border-[#2a2a2a]">
-      <div className="flex gap-3">
-        <div className="flex-shrink-0">
-          <Avatar user={post.user} size={36} />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-[15px] text-white">
-                {post.user.username || post.user.name}
-              </span>
-
-              <span className="text-[#777] text-[13px]">
-                {timeAgo(post.createdAt)}
-              </span>
-            </div>
-
-            <button className="text-[#777] hover:text-white transition-colors">
-              <MoreHorizontal size={18} />
-            </button>
-          </div>
-
-          {/* Content */}
-          <p className="text-[15px] text-[#e6e6e6] whitespace-pre-wrap leading-[1.55]">
-            {post.content}
-          </p>
-
-          {/* Image */}
-          {post.imageUrl && (
-            <div className="mt-3">
-              <div
-                className="
-                  rounded-2xl
-                  overflow-hidden
-                  border
-                  border-[#2a2a2a]
-                  bg-black
-                  w-fit
-                  max-w-[260px]
-                "
-              >
-                <img
-                  src={post.imageUrl}
-                  alt="Post"
-                  className="
-                    block
-                    w-auto
-                    max-w-full
-                    max-h-[360px]
-                    object-contain
-                  "
-                />
-              </div>
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex items-center gap-4 mt-3">
-            <button className="text-[#777] hover:text-white transition-colors">
-              <Heart size={18} />
-            </button>
-
-            <button className="text-[#777] hover:text-white transition-colors">
-              <MessageCircle size={18} />
-            </button>
-          </div>
-        </div>
-      </div>
-    </article>
-  );
-}
-
 // ─── MOBILE BOTTOM NAV ─────────────────────────────────────────────────
 
 function MobileBottomNav({ onCreate }: { onCreate: () => void }) {
@@ -279,28 +201,30 @@ export default function HomeLoggedInPage() {
       <main className="flex-1 flex justify-center">
         <div className="w-full max-w-[640px]">
           {/* ─── MOBILE VIEW ───────────────── */}
-         <div className="lg:hidden pt-[56px]">
-
-            {/* Posts */}
-           <div className="pb-[84px]">
-              {loading ? (
-                <div className="flex justify-center py-16">
-                  <div className="w-6 h-6 border-2 border-[#444] border-t-white rounded-full animate-spin" />
-                </div>
-              ) : posts.length === 0 ? (
-                <div className="py-16 text-center text-[#666]">
-                  Belum ada postingan.
-                </div>
-              ) : (
-  posts.map((post) => (
-    <FeedPost
-      key={post.id}
-      post={post}
-    />
-  ))
-)}
-            </div>
-          </div>
+<div className="lg:hidden pt-[56px]">
+  <div
+    className="
+      min-h-screen
+      bg-[#101010]
+    "
+  >
+    {loading ? (
+      <div className="flex justify-center py-16">
+        <div className="w-6 h-6 border-2 border-[#444] border-t-white rounded-full animate-spin" />
+      </div>
+    ) : posts.length === 0 ? (
+      <div className="py-16 text-center text-[#666]">
+        Belum ada postingan.
+      </div>
+    ) : (
+      <div className="pb-[84px]">
+        {posts.map((post) => (
+          <FeedPost key={post.id} post={post} />
+        ))}
+      </div>
+    )}
+  </div>
+</div>
 
           {/* ─── DESKTOP VIEW ───────────────── */}
           <div className="hidden lg:block">

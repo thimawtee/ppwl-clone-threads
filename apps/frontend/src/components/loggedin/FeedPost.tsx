@@ -138,7 +138,18 @@ const token = useAuthStore((state) => state.token);
   }
 
   return (
-    <article className="border-b border-[#262626] px-6 py-5">
+    <article
+  className="
+    border-b
+    border-[#2a2a2a]
+
+    px-4
+    py-4
+
+    lg:px-6
+    lg:py-5
+  "
+>
       <div className="flex gap-3">
         <div className="relative">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-400 to-green-300 flex items-center justify-center text-white font-bold">
@@ -203,8 +214,32 @@ const token = useAuthStore((state) => state.token);
           </p>
 
           {post.imageUrl && (
-            <div className="mt-3 rounded-2xl overflow-hidden border border-[#2a2a2a]">
-              <img src={post.imageUrl} alt="" className="w-full object-cover" />
+            <div
+  className="
+    mt-3
+    rounded-2xl
+    overflow-hidden
+    border
+    border-[#2a2a2a]
+    bg-black
+
+    w-fit
+    max-w-[260px]
+
+    lg:max-w-full
+  "
+>
+              <img
+  src={post.imageUrl}
+  alt=""
+  className="
+    block
+    w-auto
+    max-w-full
+    max-h-[360px]
+    object-contain
+  "
+/>
             </div>
           )}
 
