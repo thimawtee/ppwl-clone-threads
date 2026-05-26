@@ -240,55 +240,39 @@ export default function LoggedInSidebar({
       {/* MOBILE DROPDOWN MENU */}
       {/* ========================= */}
       {showMobileMenu && (
-        <div
-          className="
-            lg:hidden
-            fixed
-            inset-0
-            z-[60]
-            bg-black/70
-            backdrop-blur-sm
-          "
-        >
+        <>
+          {/* Overlay transparan */}
           <div
             className="
-              absolute
-              top-0
-              left-0
-              h-full
-              w-[280px]
-              bg-black
-              border-r
-              border-[#1f1f1f]
-              p-5
-            "
+        lg:hidden
+        fixed
+        inset-0
+        z-[60]
+      "
+            onClick={() => setShowMobileMenu(false)}
+          />
+
+          {/* Small Dropdown */}
+          <div
+            className="
+        lg:hidden
+        fixed
+        top-[62px]
+        left-4
+        z-[70]
+
+        w-[180px]
+
+        bg-[#262626]
+        border
+        border-[#333]
+
+        rounded-2xl
+        shadow-2xl
+
+        overflow-hidden
+      "
           >
-            {/* Top */}
-            <div className="flex items-center justify-between mb-8">
-              <img
-                src={ThreadsLogo}
-                alt="Threads"
-                className="h-9 object-contain"
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowMobileMenu(false)}
-                className="
-                  w-10
-                  h-10
-                  rounded-full
-                  flex
-                  items-center
-                  justify-center
-                  hover:bg-[#111]
-                "
-              >
-                <X size={22} />
-              </button>
-            </div>
-
-            {/* Logout */}
             <button
               type="button"
               onClick={() => {
@@ -296,20 +280,22 @@ export default function LoggedInSidebar({
                 window.location.href = "/login";
               }}
               className="
-                w-full
-                text-left
-                px-4
-                py-3
-                rounded-2xl
-                text-red-400
-                hover:bg-[#111]
-                transition-colors
-              "
+          w-full
+          text-left
+          px-4
+          py-3
+
+          text-red-400
+          text-[14px]
+
+          hover:bg-[#303030]
+          transition-colors
+        "
             >
               Logout
             </button>
           </div>
-        </div>
+        </>
       )}
 
       {/* ========================= */}
