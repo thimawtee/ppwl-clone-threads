@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ImagePlus, X } from "lucide-react";
 import { API_URL } from "@/services/api";
 import { useAuthStore } from "@/stores/auth.store";
@@ -19,6 +19,14 @@ export default function CreatePostModal({ open, onClose }: Props) {
 
   // discard popup state
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height =
+        textareaRef.current.scrollHeight + "px";
+    }
+  }, [content]);
 
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
@@ -142,20 +150,26 @@ export default function CreatePostModal({ open, onClose }: Props) {
     <>
       <div className="fixed inset-0 z-[100] bg-black/70  flex items-center justify-center px-4 py-10">
         <div
-          className="
-            relative
-            w-full
-            max-w-[620px]
-            h-[88vh]
-            bg-[#0f0f0f]
-            border
-            border-[#262626]
-            rounded-[28px]
-            shadow-2xl
-            flex
-            flex-col
-            overflow-hidden
-          "
+          className={`
+    relative
+    w-full
+    max-w-[620px]
+
+    ${
+      previewUrl || content.trim().length > 180
+        ? "min-h-[420px] max-h-[88vh]"
+        : "min-h-[260px]"
+    }
+
+    bg-[#0f0f0f]
+    border
+    border-[#262626]
+    rounded-[28px]
+    shadow-2xl
+    flex
+    flex-col
+    overflow-hidden
+  `}
         >
           {/* HEADER */}
           <div
@@ -195,11 +209,15 @@ export default function CreatePostModal({ open, onClose }: Props) {
           {/* SCROLLABLE CONTENT */}
           <div
             className="
-              flex-1
-              overflow-y-auto
-              p-4
-              sm:p-5
-            "
+    flex-1
+    overflow-y-auto
+    p-4
+    sm:p-5
+
+    [scrollbar-width:none]
+    [-ms-overflow-style:none]
+    [&::-webkit-scrollbar]:hidden
+  "
           >
             <div className="flex gap-3">
               {/* Avatar */}
@@ -226,32 +244,35 @@ export default function CreatePostModal({ open, onClose }: Props) {
 
                 {/* Textarea */}
                 <textarea
+                  ref={textareaRef}
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="What's new?"
+                  rows={1}
                   className="
-                    w-full
-                    bg-transparent
-                    text-white
-                    placeholder:text-[#777]
-                    outline-none
-                    resize-none
-                    text-[15px]
-                    min-h-[34px]
-                    leading-5
-                    pt-0.5
-                  "
+    w-full
+    bg-transparent
+    text-white
+    placeholder:text-[#777]
+    outline-none
+    resize-none
+    overflow-hidden
+
+    text-[15px]
+    leading-6
+
+    min-h-[34px]
+    pt-0.5
+  "
                 />
 
                 {/* Upload */}
-                <div className="flex items-center gap-4 -mt-5">
+                <div className="mt-4">
                   <label className="flex items-center gap-2 text-[#777] hover:text-white cursor-pointer transition-colors">
                     <ImagePlus size={20} />
 
                     <span className="text-sm">
-                      {selectedFile
-                        ? selectedFile.name
-                        : "Upload image"}
+                      {selectedFile ? selectedFile.name : "Upload image"}
                     </span>
 
                     <input

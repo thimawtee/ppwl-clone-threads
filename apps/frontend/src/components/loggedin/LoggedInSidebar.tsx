@@ -50,18 +50,18 @@ export default function LoggedInSidebar({
           {/* TOP SECTION */}
           <div>
             <div className="flex items-center gap-4 mb-10 px-2">
-  <div className="w-12 h-12 flex items-center justify-center shrink-0">
-    <img
-  src={ThreadsLogo}
-  alt="Threads"
-  className="w-11 h-11 object-contain mix-blend-lighten translate-y-[4px]"
-/>
-  </div>
+              <div className="w-12 h-12 flex items-center justify-center shrink-0">
+                <img
+                  src={ThreadsLogo}
+                  alt="Threads"
+                  className="w-11 h-11 object-contain mix-blend-lighten translate-y-[4px]"
+                />
+              </div>
 
-  <h1 className="text-[38px] leading-none font-bold tracking-tight">
-    Threats
-  </h1>
-</div>
+              <h1 className="text-[38px] leading-none font-bold tracking-tight">
+                Threats
+              </h1>
+            </div>
 
             <nav className="space-y-1">
               <Link
@@ -196,21 +196,22 @@ export default function LoggedInSidebar({
       {/* ========================= */}
       <header
         className="
-          lg:hidden
-          fixed
-          top-0
-          left-0
-          right-0
-          z-50
-          h-[60px]
-          bg-black
-          border-b
-          border-[#1f1f1f]
-          flex
-          items-center
-          justify-between
-          px-4
-        "
+        lg:hidden
+        fixed
+        top-0
+        left-0
+        right-0
+        z-50
+        h-[56px]
+        flex
+        items-center
+        justify-between
+        px-4
+        backdrop-blur-xl
+        bg-[#101010]/70
+        border-b
+        border-white/[0.03]
+      "
       >
         {/* Hamburger */}
         <button
@@ -320,20 +321,20 @@ export default function LoggedInSidebar({
       {/* ========================= */}
       <nav
         className="
-    lg:hidden
-    fixed
-    bottom-0
-    left-0
-    right-0
-    z-50
-    h-[68px]
-    bg-black
-    border-t
-    border-[#1f1f1f]
-    flex
-    items-center
-    justify-around
-    px-2
+        lg:hidden
+        fixed
+        bottom-0
+        left-0
+        right-0
+        z-50
+        h-[64px]
+        flex
+        items-center
+        justify-around
+        backdrop-blur-xl
+        bg-[#0A0A0A]/70
+        border-t
+        border-white/[0.03]
   "
       >
         {/* Home */}
