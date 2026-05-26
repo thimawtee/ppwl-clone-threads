@@ -140,7 +140,7 @@ export default function CreatePostModal({ open, onClose }: Props) {
 
   return (
     <>
-      <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center px-4 py-10">
+      <div className="fixed inset-0 z-[100] bg-black/70  flex items-center justify-center px-4 py-10">
         <div
           className="
             relative

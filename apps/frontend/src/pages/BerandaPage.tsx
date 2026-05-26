@@ -1,6 +1,5 @@
-import { useState, useEffect} from "react";
-import logoInstagram from "../assets/images/logo-instagram.png";
-import CreatePostModal from "../components/CreatePostModal";
+import { useState, useEffect } from "react";
+import logoThreads from "../assets/images/logo-threads-no-login.png";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../services/api";
 import ThreadDetail from "../components/ThreadDetail";
@@ -10,10 +9,13 @@ import { toast } from "sonner";
 import {
   Heart,
   MessageCircle,
-  Loader2,
+  MoreHorizontal,
+  Home,
+  Plus,
+  User,
 } from "lucide-react";
 
-import { DesktopSidebar, MobileBottomNav } from "../components/Sidebar";
+// ─── Types ─────────────────────────────────────────────────────────────
 
 interface PostUser {
   id: string;
@@ -33,9 +35,12 @@ interface Post {
   comments?: any[];
 }
 
+// ─── Helpers ───────────────────────────────────────────────────────────
+
 function timeAgo(dateStr: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
+
   const diff = Math.floor((now - then) / 1000);
 
   if (diff < 60) return `${diff}s`;
@@ -53,6 +58,8 @@ function getInitials(name: string): string {
     .toUpperCase()
     .slice(0, 2);
 }
+
+// ─── Avatar ────────────────────────────────────────────────────────────
 
 function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
   const colors = [
@@ -94,38 +101,7 @@ function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
   );
 }
 
-function LoginPromptCard({ onLogin }: { onLogin: () => void }) {
-  return (
-    <>
-      <div className="bg-[#181818] border border-[#2a2a2a] rounded-3xl p-5">
-        <h3 className="font-bold text-[20px] text-white mb-2 leading-tight">
-          Log in or sign up for Threads
-        </h3>
-
-        <p className="text-[#888] text-sm leading-5 mb-5">
-          See what people are talking about and join the conversation.
-        </p>
-
-        <button
-          onClick={onLogin}
-          className="w-full flex items-center justify-center gap-3 bg-black hover:bg-[#1f1f1f] text-white rounded-2xl h-12 text-sm font-semibold transition-colors"
-        >
-          <img
-            src={logoInstagram}
-            alt="Instagram"
-            className="w-5 h-5 object-contain"
-          />
-          Continue with Login
-        </button>
-      </div>
-
-      <p className="text-[#555] text-xs leading-5 mt-5 px-1">
-        © 2026 Threads <br />
-        Terms · Privacy Policy · Cookies Policy
-      </p>
-    </>
-  );
-}
+// ─── Post Card ─────────────────────────────────────────────────────────
 
 function PostCard({
   post,
@@ -142,6 +118,7 @@ function PostCard({
 }) {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likeCount);
+
   async function handleLike() {
     if (!isLoggedIn || !token) {
       onLoginRequired();
@@ -159,10 +136,11 @@ function PostCard({
       const result = await res.json();
 
       if (!result.success) {
-        throw new Error(result.message || "Gagal like postingan");
+        throw new Error(result.message);
       }
 
       setLiked((prev) => !prev);
+
       setLikeCount((count) => (liked ? count - 1 : count + 1));
     } catch (error: any) {
       toast.error(error.message || "Terjadi kesalahan saat like");
@@ -170,60 +148,89 @@ function PostCard({
   }
 
   return (
-    <article className="px-5 py-3.5 border-b border-[#1e1e1e] hover:bg-[#0a0a0a] transition-colors duration-150">
-      <div className="flex gap-3.5">
-        <div className="flex flex-col items-center flex-shrink-0">
+    <article className="px-4 py-4 border-b border-[#2a2a2a]">
+      <div className="flex gap-3">
+        {/* Avatar */}
+        <div className="flex-shrink-0">
           <Avatar user={post.user} size={36} />
-          <div className="w-px flex-1 bg-[#2a2a2a] mt-2 min-h-[24px]" />
         </div>
 
-        <div className="flex-1 min-w-0 pb-2">
-          <div className="flex items-center justify-between mb-0.5">
-            <span className="font-semibold text-[15px] text-white">
-              {post.user.username || post.user.name}
-            </span>
-
+        <div className="flex-1 min-w-0">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-              <span className="text-[#777] text-sm">
+              <span className="font-semibold text-[15px] text-white">
+                {post.user.username || post.user.name}
+              </span>
+
+              <span className="text-[#777] text-[13px]">
                 {timeAgo(post.createdAt)}
               </span>
             </div>
+
+            <button className="text-[#777] hover:text-white transition-colors">
+              <MoreHorizontal size={18} />
+            </button>
           </div>
 
-          <p className="text-[15px] text-[#e0e0e0] mb-2 whitespace-pre-wrap">
+          {/* Content */}
+          <p className="text-[15px] text-[#e6e6e6] whitespace-pre-wrap leading-[1.55]">
             {post.content}
           </p>
 
+          {/* Image */}
           {post.imageUrl && (
-            <div className="mb-3 rounded-xl overflow-hidden border border-[#2a2a2a]">
-              <img
-                src={post.imageUrl}
-                alt="Post"
-                className="w-full max-h-80 object-cover"
-              />
+            <div className="mt-3">
+              <div
+                className="
+        rounded-2xl
+        overflow-hidden
+        border
+        border-[#2a2a2a]
+        bg-black
+
+        w-fit
+
+        max-w-[260px]
+        lg:max-w-[300px]
+      "
+              >
+                <img
+                  src={post.imageUrl}
+                  alt="Post"
+                  className="
+          block
+          w-auto
+          max-w-full
+
+          max-h-[360px]
+
+          object-contain
+        "
+                />
+              </div>
             </div>
           )}
 
-          <div className="flex items-center gap-3 mt-2">
+          {/* Actions */}
+          <div className="flex items-center gap-4 mt-3">
+            {/* Like */}
             <button
               onClick={handleLike}
-              className={`flex items-center gap-1 p-1 rounded-full ${
-                liked ? "text-rose-500" : "text-[#666] hover:text-white"
+              className={`transition-colors ${
+                liked ? "text-rose-500" : "text-[#777] hover:text-white"
               }`}
             >
               <Heart size={18} className={liked ? "fill-rose-500" : ""} />
-              {likeCount > 0 && <span className="text-xs">{likeCount}</span>}
             </button>
 
+            {/* Comment */}
             <button
-  onClick={onCommentClick}
-  className="flex items-center gap-1 p-1 rounded-full text-[#666] hover:text-white"
->
-  <MessageCircle size={18} />
-  {post.commentCount > 0 && (
-    <span className="text-xs">{post.commentCount}</span>
-  )}
-</button>
+              onClick={onCommentClick}
+              className="text-[#777] hover:text-white transition-colors"
+            >
+              <MessageCircle size={18} />
+            </button>
           </div>
         </div>
       </div>
@@ -231,46 +238,283 @@ function PostCard({
   );
 }
 
+// ─── Login Card ────────────────────────────────────────────────────────
+
+function LoginCard({ onLogin }: { onLogin: () => void }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div
+        className="rounded-2xl border border-[#2a2a2a] p-6 text-center"
+        style={{ background: "#1E1E1E" }}
+      >
+        <h2 className="text-white font-bold text-[18px] leading-tight mb-2">
+          Log in or sign up for Threads
+        </h2>
+
+        <p className="text-[#888] text-[14px] leading-5 mb-5">
+          See what people are talking about and join the conversation.
+        </p>
+
+        <button
+          onClick={onLogin}
+          className="
+            w-full
+            flex
+            items-center
+            justify-center
+            gap-3
+            bg-[#101010]
+            hover:bg-[#2e2e2e]
+            transition-colors
+            rounded-xl
+            px-4
+            py-3.5
+          "
+        >
+          <div className="flex-shrink-0 w-9 h-9 rounded-lg bg-[#101010] flex items-center justify-center">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+              <rect
+                x="2"
+                y="2"
+                width="20"
+                height="20"
+                rx="5"
+                stroke="white"
+                strokeWidth="1.8"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="4.5"
+                stroke="white"
+                strokeWidth="1.8"
+              />
+              <circle cx="17.5" cy="6.5" r="1" fill="white" />
+            </svg>
+          </div>
+
+          <span className="text-white text-[15px]">
+            Continue with Instagram
+          </span>
+        </button>
+
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={onLogin}
+            className="
+              text-[#888]
+              hover:text-white
+              text-[14px]
+              transition-colors
+            "
+          >
+            Log in with username instead
+          </button>
+        </div>
+      </div>
+
+      <div className="text-center px-2">
+        <p className="text-[#555] text-[12px] leading-5">
+          © 2026 Threads Terms · Privacy Policy · Cookies Policy
+        </p>
+
+        <p className="text-[#555] text-[12px] mt-0.5">Report a problem</p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Desktop Sidebar ───────────────────────────────────────────────────
+
+function DesktopSidebar({ onNav }: { onNav: (page: string) => void }) {
+  return (
+    <aside className="hidden lg:flex flex-col w-[88px] sticky top-0 h-screen bg-[#101010]">
+      <div className="pl-5 pt-6 pb-8">
+        <img
+          src={logoThreads}
+          alt="Threads"
+          className="w-8 h-8 object-contain"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1 px-3">
+        {[
+          { id: "home", Icon: Home },
+          { id: "create", Icon: Plus },
+          { id: "activity", Icon: Heart },
+          { id: "profile", Icon: User },
+        ].map(({ id, Icon }) => (
+          <button
+            key={id}
+            onClick={() => onNav(id)}
+            className={`
+              w-14
+              h-14
+              rounded-2xl
+              flex
+              items-center
+              justify-center
+              transition-all
+              duration-200
+              ${
+                id === "home"
+                  ? "text-white"
+                  : "text-[#777] hover:text-white hover:bg-[#181818]"
+              }
+            `}
+          >
+            <Icon size={28} />
+          </button>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+// ─── Mobile Header ─────────────────────────────────────────────────────
+
+function MobileHeader({ onLogin }: { onLogin: () => void }) {
+  return (
+    <header
+      className="
+        lg:hidden
+        fixed
+        top-0
+        left-0
+        right-0
+        z-50
+        h-[56px]
+        flex
+        items-center
+        justify-between
+        px-4
+        backdrop-blur-xl
+        bg-[#101010]/70
+        border-b
+        border-white/[0.03]
+      "
+    >
+      <div className="w-16" />
+
+      <div className="absolute left-1/2 -translate-x-1/2">
+        <img src={logoThreads} alt="Threads" className="h-7 object-contain" />
+      </div>
+
+      <button
+        onClick={onLogin}
+        className="
+          bg-white
+          text-black
+          text-[13px]
+          font-semibold
+          px-4
+          py-1.5
+          rounded-xl
+        "
+      >
+        Log in
+      </button>
+    </header>
+  );
+}
+
+// ─── Mobile Bottom Nav ─────────────────────────────────────────────────
+
+function MobileBottomNav({ onNav }: { onNav: (page: string) => void }) {
+  return (
+    <nav
+      className="
+        lg:hidden
+        fixed
+        bottom-0
+        left-0
+        right-0
+        z-50
+        h-[64px]
+        flex
+        items-center
+        justify-around
+        backdrop-blur-xl
+        bg-[#0A0A0A]/70
+        border-t
+        border-white/[0.03]
+      "
+    >
+      {[
+        { id: "home", Icon: Home },
+        { id: "create", Icon: Plus },
+        { id: "activity", Icon: Heart },
+        { id: "profile", Icon: User },
+      ].map(({ id, Icon }) => (
+        <button
+          key={id}
+          onClick={() => onNav(id)}
+          className={`
+            flex
+            items-center
+            justify-center
+            w-12
+            h-12
+            transition-opacity
+            ${
+              id === "home" ? "opacity-100 text-white" : "opacity-50 text-white"
+            }
+          `}
+        >
+          <Icon size={24} />
+        </button>
+      ))}
+    </nav>
+  );
+}
+
+// ─── Main Page ─────────────────────────────────────────────────────────
+
 export default function BerandaPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activePage, setActivePage] = useState("home");
+
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const navigate = useNavigate();
 
   const currentUser = useAuthStore((state) => state.user);
+
   const token = useAuthStore((state) => state.token);
 
   const isLoggedIn = !!currentUser && !!token;
 
   useEffect(() => {
-  if (isLoggedIn) {
-    navigate("/home");
-  }
-}, [isLoggedIn, navigate]);
-
-  async function fetchPosts() {
-    try {
-      setLoading(true);
-
-      const res = await fetch(`${API_URL}/posts`);
-      const data = await res.json();
-
-      if (data.success) {
-        setPosts(data.data);
-      }
-    } catch {
-      toast.error("Gagal mengambil data postingan");
-    } finally {
-      setLoading(false);
+    if (isLoggedIn) {
+      navigate("/home");
     }
-  }
+  }, [isLoggedIn, navigate]);
 
   useEffect(() => {
-    fetchPosts();
+    (async () => {
+      try {
+        setLoading(true);
+
+        const res = await fetch(`${API_URL}/posts`);
+
+        const data = await res.json();
+
+        if (data.success) {
+          setPosts(data.data);
+        }
+      } catch {
+        toast.error("Gagal mengambil data postingan");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
+
+  function handleNav(page: string) {
+    if (page === "home") return;
+
+    navigate("/login");
+  }
 
   if (selectedPost) {
     return (
@@ -285,110 +529,114 @@ export default function BerandaPage() {
 
   return (
     <div className="min-h-screen bg-[#101010] text-white">
-      <div className="flex min-h-screen max-w-[1280px] mx-auto">
-        <DesktopSidebar
-          currentUser={
-  currentUser
-    ? { ...currentUser, avatarUrl: currentUser.avatarUrl ?? null }
-    : null
-}
-          activePage={activePage}
-          onNav={(page) => {
-            if (page === "home") navigate("/home");
-            if (page === "notifications") navigate("/notifications");
-            if (page === "login") navigate("/login");
+      {/* Mobile Header */}
+      <MobileHeader onLogin={() => navigate("/login")} />
 
-            if (page === "create") {
-              if (!isLoggedIn) {
-                navigate("/login");
-                return;
-              }
+      <div className="flex max-w-[1220px] mx-auto min-h-screen">
+        {/* Sidebar */}
+        <DesktopSidebar onNav={handleNav} />
 
-              setShowCreateModal(true);
-              return;
-            }
+        {/* Main */}
+        <main className="flex-1 min-w-0 lg:max-w-[660px] pt-[56px] lg:pt-0">
+          {/* Desktop Header */}
+          <div
+            className="
+    hidden
+    lg:flex
+    items-center
+    justify-center
 
-            setActivePage(page);
-          }}
-        />
+    h-[52px]
 
-        <main className="flex-1 min-w-0 lg:max-w-[680px] border-x border-[#1e1e1e]">
-          <div className="hidden lg:flex items-center justify-center h-[60px] border-b border-[#1f1f1f] sticky top-0 bg-[#101010]/90 backdrop-blur-md z-30">
+    sticky
+    top-0
+    z-30
+
+    bg-[#101010]
+  "
+          >
             <h1 className="text-[17px] font-semibold">Home</h1>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center py-20">
-              <Loader2 size={28} className="animate-spin text-[#555]" />
+          {/* Post Container */}
+          <div
+            className="
+    lg:mt-1
+    lg:h-[calc(100vh-57px)]
+    lg:overflow-hidden
+
+    rounded-none
+    lg:rounded-t-3xl
+    lg:rounded-b-none
+
+    border
+    border-[#2a2a2a]
+
+    bg-[#101010]
+    lg:bg-[#1E1E1E]
+  "
+          >
+            {/* Scroll Area */}
+            <div
+              className="
+    h-full
+    overflow-y-auto
+
+    [scrollbar-width:none]
+    [-ms-overflow-style:none]
+
+    [&::-webkit-scrollbar]:hidden
+  "
+            >
+              {loading ? (
+                <div className="flex justify-center py-16">
+                  <div className="w-6 h-6 border-2 border-[#444] border-t-white rounded-full animate-spin" />
+                </div>
+              ) : posts.length === 0 ? (
+                <div className="py-16 text-center text-[#666]">
+                  Belum ada postingan.
+                </div>
+              ) : (
+                posts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    token={token}
+                    isLoggedIn={isLoggedIn}
+                    onLoginRequired={() => navigate("/login")}
+                    onCommentClick={() => setSelectedPost(post)}
+                  />
+                ))
+              )}
             </div>
-          ) : (
-            posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                token={token}
-                isLoggedIn={isLoggedIn}
-                onLoginRequired={() => navigate("/login")}
-                onCommentClick={() => setSelectedPost(post)}
-              />
-            ))
-          )}
+          </div>
+
+          {/* Mobile Spacer */}
+          <div className="lg:hidden h-20" />
         </main>
 
-        <aside className="hidden lg:flex flex-col w-[360px] flex-shrink-0 py-6 px-6 sticky top-0 h-screen overflow-y-auto">
-          {!currentUser ? (
-            <LoginPromptCard onLogin={() => navigate("/login")} />
-          ) : (
-            <div className="bg-[#181818] border border-[#2a2a2a] rounded-2xl p-5">
-              <div className="flex items-center gap-3">
-                <Avatar
-  user={{ ...currentUser, avatarUrl: currentUser.avatarUrl ?? null }}
-  size={40}
-/>
+        {/* Right Sidebar */}
+        <aside
+          className="
+    hidden
+    lg:block
+    w-[340px]
+    flex-shrink-0
 
-                <div>
-                  <p className="font-semibold text-white text-sm">
-                    {currentUser.username}
-                  </p>
+    pt-[56px]
 
-                  <p className="text-[#666] text-xs">{currentUser.name}</p>
-                </div>
-              </div>
-            </div>
-          )}
+    px-5
+    sticky
+    top-0
+    h-screen
+  "
+        >
+          <LoginCard onLogin={() => navigate("/login")} />
         </aside>
       </div>
 
-      <MobileBottomNav
-        currentUser={
-  currentUser
-    ? { ...currentUser, avatarUrl: currentUser.avatarUrl ?? null }
-    : null
-}
-        activePage={activePage}
-        onNav={(page) => {
-          if (page === "home") navigate("/home");
-          if (page === "notifications") navigate("/notifications");
-          if (page === "login") navigate("/login");
-
-          if (page === "create") {
-            if (!isLoggedIn) {
-              navigate("/login");
-              return;
-            }
-
-            setShowCreateModal(true);
-            return;
-          }
-
-          setActivePage(page);
-        }}
-      />
-
-      <CreatePostModal
-        open={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-      />
+      {/* Mobile Bottom Nav */}
+      <MobileBottomNav onNav={handleNav} />
     </div>
   );
 }

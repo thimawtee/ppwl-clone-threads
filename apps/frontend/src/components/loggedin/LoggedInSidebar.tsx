@@ -129,8 +129,8 @@ export default function LoggedInSidebar({
             px-5
             py-4
             border-t
-            border-[#1f1f1f]
-            bg-black
+            border-[#101010]
+            bg-[#101010]
             shrink-0
           "
         >

@@ -62,7 +62,7 @@ export default function HomeLoggedInPage() {
   }, [BACKEND_URL]);
 
   return (
-    <div className="min-h-screen bg-black text-white flex">
+    <div className="min-h-screen bg-[#101010] text-white flex">
       <LoggedInSidebar onCreateThread={openCreateModal} />
 
       <main className="flex-1 flex justify-center">
