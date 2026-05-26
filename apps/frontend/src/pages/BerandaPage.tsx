@@ -50,15 +50,6 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)}d`;
 }
 
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
 // ─── Avatar ────────────────────────────────────────────────────────────
 
 function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
@@ -94,7 +85,6 @@ function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
           className={`w-full h-full ${color} flex items-center justify-center text-white font-semibold`}
           style={{ fontSize: size * 0.36 }}
         >
-          {getInitials(user.name)}
         </div>
       )}
     </div>
@@ -214,15 +204,15 @@ function PostCard({
 
           {/* Actions */}
           <div className="flex items-center gap-4 mt-3">
-            {/* Like */}
             <button
-              onClick={handleLike}
-              className={`transition-colors ${
-                liked ? "text-rose-500" : "text-[#777] hover:text-white"
-              }`}
-            >
-              <Heart size={18} className={liked ? "fill-rose-500" : ""} />
-            </button>
+  onClick={handleLike}
+  className={`flex items-center gap-1 transition-colors ${
+    liked ? "text-rose-500" : "text-[#777] hover:text-white"
+  }`}
+>
+  <Heart size={18} className={liked ? "fill-rose-500" : ""} />
+  <span className="text-xs">{likeCount}</span>
+</button>
 
             {/* Comment */}
             <button

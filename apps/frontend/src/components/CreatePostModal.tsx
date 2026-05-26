@@ -2,11 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import {
   ImagePlus,
   X,
-  Globe,
-  AlignLeft,
-  MapPin,
-  FileText,
-  Smile,
 } from "lucide-react";
 
 import { API_URL } from "@/services/api";

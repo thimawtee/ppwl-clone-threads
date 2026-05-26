@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Loader2, MessageCircle, } from "lucide-react";
+import { Heart, Loader2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { API_URL } from "../services/api";
 import { useAuthStore } from "../stores/auth.store";
@@ -8,25 +8,78 @@ import LoggedInSidebar from "../components/loggedin/LoggedInSidebar";
 import FloatingCreateButton from "@/components/loggedin/FloatingCreateButton";
 import CreatePostModal from "@/components/CreatePostModal";
 
-interface NotifActor { id: string; name: string; username: string; avatarUrl: string | null; }
-interface NotifPost { id: string; content: string; }
-interface Notification { id: string; type: "LIKE"|"COMMENT"; userId: string; actorId: string; isRead: boolean; createdAt: string; actor: NotifActor; post: NotifPost | null; }
+interface NotifActor {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl: string | null;
+}
+interface NotifPost {
+  id: string;
+  content: string;
+}
+interface Notification {
+  id: string;
+  type: "LIKE" | "COMMENT";
+  userId: string;
+  actorId: string;
+  isRead: boolean;
+  createdAt: string;
+  actor: NotifActor;
+  post: NotifPost | null;
+}
 
 function timeAgo(d: string): string {
   const s = Math.floor((Date.now() - new Date(d).getTime()) / 1000);
-  if (s < 60) return `${s}s`; if (s < 3600) return `${Math.floor(s / 60)}m`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h`; return `${Math.floor(s / 86400)}d`;
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}m`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+  return `${Math.floor(s / 86400)}d`;
 }
 
-function getInitials(n: string) { return n.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2); }
+function getInitials(n: string) {
+  return n
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
-function Avatar({ user, size = 36 }: { user: { id: string; name: string; avatarUrl: string | null }; size?: number }) {
-  const colors = ["bg-violet-600","bg-blue-600","bg-emerald-600","bg-amber-600","bg-rose-600"];
+function Avatar({
+  user,
+  size = 36,
+}: {
+  user: { id: string; name: string; avatarUrl: string | null };
+  size?: number;
+}) {
+  const colors = [
+    "bg-violet-600",
+    "bg-blue-600",
+    "bg-emerald-600",
+    "bg-amber-600",
+    "bg-rose-600",
+  ];
   const c = colors[user.id.charCodeAt(0) % colors.length];
   return (
-    <div className="relative flex-shrink-0 rounded-full overflow-hidden" style={{ width: size, height: size }}>
-      {user.avatarUrl ? <img src={user.avatarUrl} alt={user.name} className="w-full h-full object-cover" />
-      : <div className={`w-full h-full ${c} flex items-center justify-center text-white font-semibold`} style={{ fontSize: size * 0.36 }}>{getInitials(user.name)}</div>}
+    <div
+      className="relative flex-shrink-0 rounded-full overflow-hidden"
+      style={{ width: size, height: size }}
+    >
+      {user.avatarUrl ? (
+        <img
+          src={user.avatarUrl}
+          alt={user.name}
+          className="w-full h-full object-cover"
+        />
+      ) : (
+        <div
+          className={`w-full h-full ${c} flex items-center justify-center text-white font-semibold`}
+          style={{ fontSize: size * 0.36 }}
+        >
+          {getInitials(user.name)}
+        </div>
+      )}
     </div>
   );
 }
@@ -80,9 +133,7 @@ function NotifItem({
           </span>
         </div>
 
-        <p className="text-[#777] text-[14px] mt-0.5">
-          {texts[notif.type]}
-        </p>
+        <p className="text-[#777] text-[14px] mt-0.5">{texts[notif.type]}</p>
 
         {notif.post && (
           <p className="text-[#555] text-[13px] mt-1 line-clamp-2">
@@ -96,89 +147,113 @@ function NotifItem({
 
 export default function NotificationPage() {
   const navigate = useNavigate();
-  const isAuthenticated = useAuthStore(
-  (state) => state.isAuthenticated
-);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-useEffect(() => {
-  if (!isAuthenticated) {
-    navigate("/login");
-  }
-}, [isAuthenticated, navigate]);
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate("/login");
+    }
+  }, [isAuthenticated, navigate]);
   const API = API_URL;
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const currentUser = useAuthStore((state) => state.user);
-const token = useAuthStore((state) => state.token);
-const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const token = useAuthStore((state) => state.token);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-const openCreateModal = () => {
-  setIsCreateOpen(true);
-};
-
-  useEffect(() => { function h(e: MouseEvent) { if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setShowDropdown(false); } document.addEventListener("mousedown", h); return () => document.removeEventListener("mousedown", h); }, []);
+  const openCreateModal = () => {
+    setIsCreateOpen(true);
+  };
 
   useEffect(() => {
-    if (!token) { setLoading(false); return; }
-    (async () => { try { setLoading(true); const r = await fetch(`${API}/notifications`, { headers: { Authorization: `Bearer ${token}` } }); const d = await r.json(); if (d.success) setNotifications(d.data); } catch {} finally { setLoading(false); } })();
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+    (async () => {
+      try {
+        setLoading(true);
+        const r = await fetch(`${API}/notifications`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const d = await r.json();
+        if (d.success) setNotifications(d.data);
+      } catch {
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [token, API]);
 
   useEffect(() => {
     if (currentUser && token) {
       const shown = localStorage.getItem("threads_welcome_shown");
-      if (!shown) { setTimeout(() => { toast.success(`Selamat datang di Threads! 🧵`, { description: `Halo ${currentUser.name}, selamat menikmati aktivitas terbaru.`, duration: 5000 }); localStorage.setItem("threads_welcome_shown", "1"); }, 500); }
+      if (!shown) {
+        setTimeout(() => {
+          toast.success(`Selamat datang di Threads! 🧵`, {
+            description: `Halo ${currentUser.name}, selamat menikmati aktivitas terbaru.`,
+            duration: 5000,
+          });
+          localStorage.setItem("threads_welcome_shown", "1");
+        }, 500);
+      }
     }
   }, [currentUser, token]);
 
   return (
-  <div className="min-h-screen bg-[#101010] text-white flex">
-    <LoggedInSidebar onCreateThread={openCreateModal} />
+    <div className="h-screen overflow-hidden bg-[#101010] text-white flex">
+      <LoggedInSidebar onCreateThread={openCreateModal} />
 
-    <main className="flex-1 flex flex-col min-h-screen relative pb-24">
-      <div className="sticky top-0 z-40 bg-[#101010]/95 backdrop-blur-md">
-        <div className="flex items-center justify-center px-5 h-[60px] max-w-[640px] mx-auto w-full">
-          <h1 className="text-[15px] font-bold text-white">
-            Activity
-          </h1>
-        </div>
-      </div>
-
-      <div className="flex-1 flex items-start justify-center px-4 pt-4">
-        <div className="w-full max-w-[640px]">
-          {loading ? (
-            <div className="bg-[#181818] rounded-2xl flex items-center justify-center min-h-[calc(100vh-180px)]">
-              <Loader2 size={28} className="animate-spin text-[#555]" />
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="bg-[#181818] rounded-2xl flex items-center justify-center min-h-[calc(100vh-180px)]">
-              <p className="text-[#555] text-[15px] italic">
-                No activity yet.
-              </p>
-            </div>
-          ) : (
-            <div className="bg-[#181818] rounded-2xl overflow-hidden min-h-[calc(100vh-180px)]">
-              {notifications.map((n) => (
-                <NotifItem
-                  key={n.id}
-                  notif={n}
-                  onOpenPost={(postId) => navigate(`/post/${postId}`)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="hidden lg:block">
-  <FloatingCreateButton onClick={openCreateModal} />
+      <main className="flex-1 flex flex-col h-screen relative pt-[56px] lg:pt-0 pb-[64px] overflow-hidden">
+        {/* Mobile Header */}
+        <div className="lg:hidden flex items-center justify-center pt-3 pb-2">
+  <h1 className="text-[22px] font-bold text-white">
+    Activity
+  </h1>
 </div>
-    </main>
 
-    <CreatePostModal
-      open={isCreateOpen}
-      onClose={() => setIsCreateOpen(false)}
-    />
-  </div>
-);
+        {/* Desktop Header */}
+        <div className="hidden lg:sticky lg:top-0 lg:z-40 lg:flex bg-[#101010]/95 backdrop-blur-md">
+          <div className="flex items-center justify-center px-5 h-[60px] max-w-[640px] mx-auto w-full">
+            <h1 className="text-[15px] font-bold text-white">Activity</h1>
+          </div>
+        </div>
+
+        <div className="flex-1 flex items-start justify-center px-4 pt-2 overflow-hidden">
+          <div className="w-full max-w-[640px]">
+            {loading ? (
+              <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-[calc(100vh-150px)]">
+                <Loader2 size={28} className="animate-spin text-[#555]" />
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-[calc(100vh-150px)]">
+                <p className="text-[#555] text-[15px] italic">
+                  No activity yet.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-[#181818] rounded-2xl overflow-hidden h-[calc(100vh-150px)]">
+                {notifications.map((n) => (
+                  <NotifItem
+                    key={n.id}
+                    notif={n}
+                    onOpenPost={(postId) => navigate(`/post/${postId}`)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="hidden lg:block">
+          <FloatingCreateButton onClick={openCreateModal} />
+        </div>
+      </main>
+
+      <CreatePostModal
+        open={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+      />
+    </div>
+  );
 }
