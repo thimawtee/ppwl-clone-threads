@@ -382,11 +382,12 @@ export default function CreatePostModal({ open, onClose }: Props) {
               overflow-y-auto
               px-4
               py-4
+              pb-24
 
               [scrollbar-width:none]
-              [-ms-overflow-style:none]
-              [&::-webkit-scrollbar]:hidden
-            "
+  [-ms-overflow-style:none]
+  [&::-webkit-scrollbar]:hidden
+"
           >
             <div className="flex gap-3">
               {/* LEFT */}
@@ -533,7 +534,20 @@ export default function CreatePostModal({ open, onClose }: Props) {
           </div>
 
           {/* FOOTER */}
-          <div className="h-[72px] border-t border-[#1f1f1f] px-4 flex items-center justify-end shrink-0 bg-[#0f0f0f]">
+          <div
+  className="
+    min-h-[72px]
+    border-t
+    border-[#1f1f1f]
+    px-4
+    flex
+    items-center
+    justify-end
+    shrink-0
+    bg-[#0f0f0f]
+    pb-[env(safe-area-inset-bottom)]
+  "
+>
             <button
               type="button"
               onClick={handleSubmit}
