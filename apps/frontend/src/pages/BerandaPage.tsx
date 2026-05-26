@@ -85,6 +85,7 @@ function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
           className={`w-full h-full ${color} flex items-center justify-center text-white font-semibold`}
           style={{ fontSize: size * 0.36 }}
         >
+          {user.name?.charAt(0).toUpperCase()}
         </div>
       )}
     </div>
@@ -215,12 +216,13 @@ function PostCard({
 </button>
 
             {/* Comment */}
-            <button
-              onClick={onCommentClick}
-              className="text-[#777] hover:text-white transition-colors"
-            >
-              <MessageCircle size={18} />
-            </button>
+           <button
+  onClick={onCommentClick}
+  className="flex items-center gap-1 text-[#777] hover:text-white transition-colors"
+>
+  <MessageCircle size={18} />
+  <span className="text-xs">{post.commentCount}</span>
+</button>
           </div>
         </div>
       </div>
@@ -474,6 +476,25 @@ export default function BerandaPage() {
 
   const isLoggedIn = !!currentUser && !!token;
 
+  async function handleOpenPost(postId: string) {
+    try {
+      const res = await fetch(`${API_URL}/posts/${postId}`);
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(
+          data.message || "Gagal mengambil detail postingan"
+        );
+      }
+
+      setSelectedPost(data.data);
+    } catch (error: any) {
+      toast.error(
+        error.message || "Gagal membuka detail postingan"
+      );
+    }
+  }
+
   useEffect(() => {
     if (isLoggedIn) {
       navigate("/home");
@@ -594,7 +615,7 @@ export default function BerandaPage() {
                     token={token}
                     isLoggedIn={isLoggedIn}
                     onLoginRequired={() => navigate("/login")}
-                    onCommentClick={() => setSelectedPost(post)}
+                    onCommentClick={() => handleOpenPost(post.id)}
                   />
                 ))
               )}

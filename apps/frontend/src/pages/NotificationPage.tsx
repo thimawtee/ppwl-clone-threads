@@ -219,31 +219,31 @@ export default function NotificationPage() {
           </div>
         </div>
 
-        <div className="flex-1 flex items-start justify-center px-4 pt-2 overflow-hidden">
-          <div className="w-full max-w-[640px]">
-            {loading ? (
-              <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-[calc(100vh-150px)]">
-                <Loader2 size={28} className="animate-spin text-[#555]" />
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-[calc(100vh-150px)]">
-                <p className="text-[#555] text-[15px] italic">
-                  No activity yet.
-                </p>
-              </div>
-            ) : (
-              <div className="bg-[#181818] rounded-2xl overflow-hidden h-[calc(100vh-150px)]">
-                {notifications.map((n) => (
-                  <NotifItem
-                    key={n.id}
-                    notif={n}
-                    onOpenPost={(postId) => navigate(`/post/${postId}`)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <div className="flex-1 flex justify-center px-4 pt-2 overflow-hidden">
+  <div className="w-full max-w-[640px] h-full overflow-hidden">
+    {loading ? (
+      <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-full">
+        <Loader2 size={28} className="animate-spin text-[#555]" />
+      </div>
+    ) : notifications.length === 0 ? (
+      <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-full">
+        <p className="text-[#555] text-[15px] italic">
+          No activity yet.
+        </p>
+      </div>
+    ) : (
+      <div className="bg-[#181818] rounded-2xl h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+        {notifications.map((n) => (
+          <NotifItem
+            key={n.id}
+            notif={n}
+            onOpenPost={(postId) => navigate(`/post/${postId}`)}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+</div>
 
         <div className="hidden lg:block">
           <FloatingCreateButton onClick={openCreateModal} />
