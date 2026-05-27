@@ -3,6 +3,8 @@ import {
   ArrowLeft,
   Loader2,
   MoreHorizontal,
+  Heart,
+  MessageCircle,
 } from "lucide-react";
 
 import { API_URL } from "@/services/api";
@@ -32,6 +34,7 @@ interface Post {
   user: User;
   likeCount: number;
   commentCount: number;
+  isLiked?: boolean;
   comments?: Comment[];
 }
 
@@ -50,9 +53,7 @@ interface Props {
 // ─── Helper ─────────────────────────────────────
 
 function timeAgo(dateStr: string): string {
-  const diff = Math.floor(
-    (Date.now() - new Date(dateStr).getTime()) / 1000
-  );
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
 
   if (diff < 60) return `${diff}s`;
   if (diff < 3600) return `${Math.floor(diff / 60)}m`;
@@ -77,6 +78,8 @@ export default function ThreadDetail({
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [liked, setLiked] = useState(post?.isLiked || false);
+  const [likeCount, setLikeCount] = useState(post?.likeCount || 0);
 
   const comments = post?.comments || [];
 
@@ -95,16 +98,6 @@ export default function ThreadDetail({
       document.removeEventListener("click", handleClickOutside);
     };
   }, [menuOpen]);
-
-  // ─── Lock body scroll ─────────────────────
-
-  useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
-
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
 
   // ─── Reset input ─────────────────────
 
@@ -155,55 +148,105 @@ export default function ThreadDetail({
 
       setText("");
 
-      onClose(true);
+      setText("");
     } catch (error: any) {
-      toast.error(
-        error.message || "Gagal membuat komentar"
-      );
+      toast.error(error.message || "Gagal membuat komentar");
     } finally {
       setSubmitting(false);
     }
   }
 
+  async function handleLike() {
+    if (!post) return;
+
+    if (!isLoggedIn || !token) {
+      onLoginRequired();
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/posts/${post.id}/like`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+
+      setLiked(data.liked);
+      setLikeCount(data.likeCount);
+    } catch (error: any) {
+      toast.error(error.message || "Gagal memberikan like");
+    }
+  }
+
   return (
-  <div
-    className="
-      fixed
-      inset-0
-      z-[999]
-      bg-[#101010]
-      text-white
-      overflow-y-auto
-    "
-  >
+    <div
+      className="
+    w-full
+    bg-[#101010]
+    text-white
+  "
+    >
       {/* HEADER */}
       <div
         className="
-          sticky
-          top-0
-          z-50
-          bg-[#101010]/90
-          backdrop-blur-xl
-          border-b
-          border-[#2a2a2a]
-        "
+    lg:hidden
+    fixed
+    top-0
+    left-0
+    right-0
+    z-50
+    h-[56px]
+    flex
+    items-center
+    justify-between
+    px-4
+    backdrop-blur-xl
+    bg-[#101010]/70
+    border-b
+    border-white/[0.03]
+  "
       >
-        <div className="max-w-[640px] mx-auto px-4 py-3 flex items-center gap-4">
+        {/* LEFT */}
+        <div className="w-16 flex items-center">
           <button
             onClick={() => onClose(false)}
-            className="p-1 rounded-full hover:bg-[#1a1a1a] transition"
+            className="
+        w-9
+        h-9
+        rounded-full
+        border
+        border-[#2a2a2a]
+        bg-[#181818]
+        flex
+        items-center
+        justify-center
+        text-white
+        hover:bg-[#1a1a1a]
+        transition
+      "
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={24} />
           </button>
-
-          <span className="font-semibold text-[17px]">
-            Thread
-          </span>
         </div>
+
+        {/* CENTER */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <span className="text-[17px] font-semibold text-white">Thread</span>
+        </div>
+
+        {/* RIGHT SPACER */}
+        <div className="w-16" />
       </div>
 
       {/* CONTENT */}
-      <div className="max-w-[640px] mx-auto border-x border-[#2a2a2a] min-h-screen">
+      <div className="w-full">
         {/* MAIN POST */}
         <div className="px-4 py-4 border-b border-[#2a2a2a]">
           <div className="flex gap-3">
@@ -269,7 +312,7 @@ export default function ThreadDetail({
                         onClick={() => {
                           if (currentUser?.id !== post.user.id) {
                             toast.error(
-                              "Anda tidak punya akses untuk mengedit postingan ini."
+                              "Anda tidak punya akses untuk mengedit postingan ini.",
                             );
 
                             setMenuOpen(false);
@@ -297,7 +340,7 @@ export default function ThreadDetail({
                         onClick={() => {
                           if (currentUser?.id !== post.user.id) {
                             toast.error(
-                              "Anda tidak punya akses untuk menghapus postingan ini."
+                              "Anda tidak punya akses untuk menghapus postingan ini.",
                             );
 
                             setMenuOpen(false);
@@ -342,25 +385,53 @@ export default function ThreadDetail({
               {post.imageUrl && (
                 <div
                   className="
-                    mt-4
-                    rounded-2xl
-                    overflow-hidden
-                    border
-                    border-[#2a2a2a]
-                    bg-black
-                  "
+      mt-4
+      rounded-2xl
+      overflow-hidden
+      border
+      border-[#2a2a2a]
+      bg-black
+
+      w-fit
+      max-w-[180px]
+sm:max-w-[220px]
+md:max-w-[260px]
+    "
                 >
                   <img
                     src={post.imageUrl}
                     alt="Post"
                     className="
-                      w-full
-                      max-h-[600px]
-                      object-cover
-                    "
+        block
+        w-full
+        h-auto
+        object-cover
+      "
                   />
                 </div>
               )}
+
+              {/* ACTIONS */}
+              <div className="flex items-center gap-5 mt-4">
+                {/* LIKE */}
+                <button
+                  onClick={handleLike}
+                  className={`flex items-center gap-1 transition-colors ${
+                    liked ? "text-rose-500" : "text-[#777] hover:text-white"
+                  }`}
+                >
+                  <Heart size={18} className={liked ? "fill-rose-500" : ""} />
+
+                  <span className="text-xs">{likeCount}</span>
+                </button>
+
+                {/* COMMENT */}
+                <div className="flex items-center gap-1 text-[#777]">
+                  <MessageCircle size={18} />
+
+                  <span className="text-xs">{post.commentCount}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -389,40 +460,41 @@ export default function ThreadDetail({
                 placeholder={`Reply to ${
                   post.user.username || post.user.name
                 }...`}
-                rows={2}
+                rows={1}
                 className="
-                  w-full
-                  bg-transparent
-                  outline-none
-                  resize-none
-                  text-[14px]
-                  text-white
-                  placeholder:text-zinc-500
-                "
+      w-full
+      bg-[#1E1E1E]
+      rounded-full
+      px-4
+      py-3
+      outline-none
+      resize-none
+      text-[14px]
+      text-white
+      placeholder:text-[#777]
+      min-h-[48px]
+      max-h-[140px]
+    "
               />
 
-              <div className="flex justify-end mt-3">
+              <div className="flex justify-end mt-2">
                 <button
                   onClick={handleSubmit}
                   disabled={!text.trim() || submitting}
                   className="
-                    bg-white
-                    text-black
-                    px-5
-                    py-1.5
-                    rounded-full
-                    text-sm
-                    font-semibold
-                    disabled:opacity-40
-                    hover:opacity-90
-                    transition
-                  "
+        h-9
+        px-5
+        rounded-full
+        bg-white
+        text-black
+        text-sm
+        font-semibold
+        disabled:opacity-40
+        transition
+      "
                 >
                   {submitting ? (
-                    <Loader2
-                      size={16}
-                      className="animate-spin"
-                    />
+                    <Loader2 size={16} className="animate-spin" />
                   ) : (
                     "Reply"
                   )}
@@ -451,10 +523,7 @@ export default function ThreadDetail({
             </div>
           ) : (
             comments.map((comment) => (
-              <div
-                key={comment.id}
-                className="px-4 py-4 flex gap-3"
-              >
+              <div key={comment.id} className="px-4 py-4 flex gap-3">
                 {/* AVATAR */}
                 <div className="w-9 h-9 rounded-full overflow-hidden bg-zinc-800 flex-shrink-0 flex items-center justify-center text-sm font-semibold text-zinc-300">
                   {comment.user.avatarUrl ? (
@@ -472,8 +541,7 @@ export default function ThreadDetail({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-[14px] text-white">
-                      {comment.user.username ||
-                        comment.user.name}
+                      {comment.user.username || comment.user.name}
                     </span>
 
                     <span className="text-[12px] text-zinc-500">

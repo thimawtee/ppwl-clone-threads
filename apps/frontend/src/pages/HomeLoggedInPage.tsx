@@ -87,12 +87,28 @@ export default function HomeLoggedInPage() {
 
     fetchPosts();
   }, [BACKEND_URL, token]);
-  
-if (selectedPost) {
+
   return (
+    <div className="min-h-screen bg-[#101010] text-white flex">
+      {/* Desktop Sidebar */}
+      <LoggedInSidebar onCreateThread={openCreateModal} />
+
+      {/* MAIN */}
+      <main className="flex-1 flex justify-center">
+        <div className="w-full max-w-[640px]">
+          {/* ─── MOBILE VIEW ───────────────── */}
+<div className="lg:hidden pt-[56px] min-h-screen">
+  <div
+    className="
+      min-h-screen
+      bg-[#101010]
+    "
+  >
+    {selectedPost ? (
+  <div className="pb-[84px]">
     <ThreadDetail
       post={selectedPost}
-      isOpen={!!selectedPost}
+      isOpen={true}
       onClose={() => setSelectedPost(null)}
       token={token}
       currentUser={
@@ -110,25 +126,8 @@ if (selectedPost) {
       onEditPost={() => {}}
       onDeletePost={() => {}}
     />
-  );
-}
-  return (
-    <div className="min-h-screen bg-[#101010] text-white flex">
-      {/* Desktop Sidebar */}
-      <LoggedInSidebar onCreateThread={openCreateModal} />
-
-      {/* MAIN */}
-      <main className="flex-1 flex justify-center">
-        <div className="w-full max-w-[640px]">
-          {/* ─── MOBILE VIEW ───────────────── */}
-<div className="lg:hidden pt-[56px]">
-  <div
-    className="
-      min-h-screen
-      bg-[#101010]
-    "
-  >
-    {loading ? (
+  </div>
+) : loading ? (
       <div className="flex justify-center py-16">
         <div className="w-6 h-6 border-2 border-[#444] border-t-white rounded-full animate-spin" />
       </div>
@@ -151,15 +150,81 @@ if (selectedPost) {
 </div>
 
           {/* ─── DESKTOP VIEW ───────────────── */}
-          <div className="hidden lg:block">
-            <div className="pt-4 pb-6 px-6">
-              <h1 className="text-[32px] font-bold tracking-tight">For you</h1>
-            </div>
+<div className="hidden lg:block">
 
-            <div className="mx-2 md:mx-6 border border-[#262626] rounded-[20px] md:rounded-[28px] overflow-hidden mb-24">
-              <FeedComposer onCreateThread={openCreateModal} />
+  <div
+    className="
+      pt-4
+      pb-6
+      px-6
+      flex
+      items-center
+      gap-4
+    "
+  >
+    {selectedPost && (
+      <button
+        onClick={() => setSelectedPost(null)}
+        className="
+          w-8
+          h-8
+          rounded-full
+          bg-[#181818]
+          flex
+          items-center
+          justify-center
+          hover:bg-[#222]
+          transition
+        "
+      >
+        ←
+      </button>
+    )}
 
-              {loading ? (
+    <h1 className="text-[32px] font-bold tracking-tight">
+      {selectedPost ? "Thread" : "For you"}
+    </h1>
+  </div>
+
+            <div
+  className="
+    mx-2
+    md:mx-6
+    border
+    border-[#262626]
+    rounded-[20px]
+    md:rounded-[28px]
+    overflow-hidden
+    mb-24
+    bg-[#101010]
+  "
+>
+              {!selectedPost && (
+  <FeedComposer onCreateThread={openCreateModal} />
+)}
+
+             {selectedPost ? (
+  <ThreadDetail
+    post={selectedPost}
+    isOpen={true}
+    onClose={() => setSelectedPost(null)}
+    token={token}
+    currentUser={
+      user
+        ? {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            avatarUrl: user.avatarUrl ?? null,
+          }
+        : null
+    }
+    isLoggedIn={true}
+    onLoginRequired={() => {}}
+    onEditPost={() => {}}
+    onDeletePost={() => {}}
+  />
+) : loading ? (
                 <div className="py-20 text-center text-[#777]">Loading...</div>
               ) : (
                 posts.map((post) => (
