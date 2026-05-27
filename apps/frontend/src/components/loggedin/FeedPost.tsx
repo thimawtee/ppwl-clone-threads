@@ -47,6 +47,7 @@ export default function FeedPost({ post }: { post: Post }) {
   const [imageOpen, setImageOpen] = useState(false);
 
   const token = useAuthStore((state) => state.token);
+  const currentUser = useAuthStore((state) => state.user);
 
   async function handleLike() {
     if (!token) {
@@ -213,36 +214,36 @@ export default function FeedPost({ post }: { post: Post }) {
             {menuOpen && (
               <div className="absolute right-0 top-7 z-20 w-36 rounded-xl border border-[#262626] bg-[#111] overflow-hidden shadow-xl">
                 <button
-                  onClick={() => {
-                    setEditOpen(true);
-                    setMenuOpen(false);
-                  }}
-                  className="
-                    w-full
-                    text-left
-                    px-4
-                    py-2
-                    text-sm
-                    hover:bg-[#1a1a1a]
-                  "
-                >
-                  Edit
-                </button>
+  onClick={() => {
+    if (currentUser?.id !== post.user.id) {
+  toast.error("Anda tidak punya akses untuk mengedit postingan ini.");
+  setMenuOpen(false);
+  return;
+}
 
-                <button
-                  onClick={handleDeletePost}
-                  className="
-                    w-full
-                    text-left
-                    px-4
-                    py-2
-                    text-sm
-                    text-red-400
-                    hover:bg-[#1a1a1a]
-                  "
-                >
-                  Delete
-                </button>
+setEditOpen(true);
+setMenuOpen(false);
+  }}
+  className="w-full text-left px-4 py-2 text-sm text-white hover:bg-[#1a1a1a]"
+>
+  Edit
+</button>
+
+<button
+  onClick={() => {
+    if (currentUser?.id !== post.user.id) {
+  toast.error("Anda tidak punya akses untuk menghapus postingan ini.");
+  setMenuOpen(false);
+  return;
+}
+
+handleDeletePost();
+setMenuOpen(false);
+  }}
+  className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#1a1a1a]"
+>
+  Delete
+</button>
               </div>
             )}
           </div>

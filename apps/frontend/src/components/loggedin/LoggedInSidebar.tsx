@@ -1,5 +1,5 @@
-import { Home, Plus, Heart, User, Menu} from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Home, Plus, Heart, User, Menu, ArrowLeft } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuthStore } from "../../stores/auth.store";
 
@@ -14,6 +14,8 @@ export default function LoggedInSidebar({
   onCreateThread,
 }: LoggedInSidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+const isDetailPage = location.pathname.startsWith("/post/");
 
   const [showMenu, setShowMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -211,22 +213,23 @@ export default function LoggedInSidebar({
       "
       >
         {/* Hamburger */}
-        <button
-          type="button"
-          onClick={() => setShowMobileMenu((prev) => !prev)}
-          className="
-            w-10
-            h-10
-            flex
-            items-center
-            justify-center
-            rounded-full
-            hover:bg-[#111]
-            transition-colors
-          "
-        >
-          <Menu size={24} />
-        </button>
+        {isDetailPage ? (
+  <button
+    type="button"
+    onClick={() => navigate(-1)}
+    className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#111] transition-colors"
+  >
+    <ArrowLeft size={24} />
+  </button>
+) : (
+  <button
+    type="button"
+    onClick={() => setShowMobileMenu((prev) => !prev)}
+    className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#111] transition-colors"
+  >
+    <Menu size={24} />
+  </button>
+)}
 
         {/* Logo */}
         <div className="absolute left-1/2 -translate-x-1/2">
@@ -238,7 +241,17 @@ export default function LoggedInSidebar({
         </div>
 
         {/* Empty spacing */}
-        <div className="w-10" />
+        {isDetailPage ? (
+  <button
+    type="button"
+    onClick={() => setShowMobileMenu((prev) => !prev)}
+    className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-[#111] transition-colors"
+  >
+    <Menu size={24} />
+  </button>
+) : (
+  <div className="w-10" />
+)}
       </header>
 
       {/* ========================= */}
@@ -248,36 +261,20 @@ export default function LoggedInSidebar({
         <>
           {/* Overlay transparan */}
 <div
-  className="
-    lg:hidden
-    fixed
-    inset-0
-    z-40
-    bg-transparent
-  "
-  onClick={() => setShowMobileMenu(false)}
-/>
-
-{/* Small Dropdown */}
-<div
-  className="
-    lg:hidden
-    fixed
-    top-[62px]
-    left-4
-    z-50
-
-    w-[180px]
-
-    bg-[#262626]
-    border
-    border-[#333]
-
-    rounded-2xl
-    shadow-2xl
-
-    overflow-hidden
-  "
+  className={`
+  lg:hidden
+  fixed
+  top-[62px]
+  ${isDetailPage ? "right-4" : "left-4"}
+  z-50
+  w-[180px]
+  bg-[#262626]
+  border
+  border-[#333]
+  rounded-2xl
+  shadow-2xl
+  overflow-hidden
+`}
 >
             <button
               type="button"

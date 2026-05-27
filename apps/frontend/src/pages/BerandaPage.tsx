@@ -298,13 +298,21 @@ function PostCard({
             </button>
 
             {/* Comment */}
-            <button
-              onClick={onCommentClick}
-              className="flex items-center gap-1 text-[#777] hover:text-white transition-colors"
-            >
-              <MessageCircle size={18} />
-              <span className="text-xs">{post.commentCount}</span>
-            </button>
+            {/* Comment */}
+<button
+  onClick={() => {
+    if (!isLoggedIn) {
+      onLoginRequired();
+      return;
+    }
+
+    onCommentClick();
+  }}
+  className="flex items-center gap-1 text-[#777] hover:text-white transition-colors"
+>
+  <MessageCircle size={18} />
+  <span className="text-xs">{post.commentCount}</span>
+</button>
           </div>
         </div>
       </div>

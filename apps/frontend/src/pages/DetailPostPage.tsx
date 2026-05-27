@@ -1,17 +1,10 @@
 import { useEffect, useState } from "react";
 
-import logoThreads from "@/assets/images/logo-threads-no-login-no-text.png";
-
 import {
   Heart,
   MessageCircle,
-  Repeat2,
-  Send,
   MoreHorizontal,
   ArrowLeft,
-  Home,
-  Plus,
-  User,
 } from "lucide-react";
 
 import { useNavigate, useParams } from "react-router-dom";
@@ -22,9 +15,10 @@ import { API_URL } from "@/services/api";
 
 import { useAuthStore } from "@/stores/auth.store";
 
-import { MobileBottomNav } from "@/components/Sidebar";
+import LoggedInSidebar from "@/components/loggedin/LoggedInSidebar";
 
 import ThreadDetail from "@/components/ThreadDetail";
+import CreatePostModal from "@/components/CreatePostModal";
 
 // ─── TYPES ─────────────────────────────────────────────
 
@@ -144,6 +138,12 @@ export default function DetailPostPage() {
 
   const [replyOpen, setReplyOpen] = useState(false);
 
+  const [menuOpen, setMenuOpen] = useState(false);
+const [editOpen, setEditOpen] = useState(false);
+const [editContent, setEditContent] = useState("");
+const [saving, setSaving] = useState(false);
+const [isCreateOpen, setIsCreateOpen] = useState(false);
+
   // ─── FETCH POST ─────────────────────────────────────
 
   async function fetchPost() {
@@ -151,16 +151,23 @@ export default function DetailPostPage() {
       setLoading(true);
 
       const res = await fetch(
-        `${API_URL}/posts/${id}`
-      );
-
+  `${API_URL}/posts/${id}`,
+  {
+    headers: token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : {},
+  }
+);
       const data = await res.json();
 
       if (data.success) {
-        setPost(data.data);
+  setPost(data.data);
 
-        setLikeCount(data.data.likeCount || 0);
-      }
+  setLikeCount(data.data.likeCount || 0);
+  setLiked(data.data.liked || false);
+}
     } catch {
       toast.error("Gagal mengambil detail post");
     } finally {
@@ -171,6 +178,26 @@ export default function DetailPostPage() {
   useEffect(() => {
     fetchPost();
   }, [id]);
+
+  useEffect(() => {
+  function handleClickOutside() {
+    setMenuOpen(false);
+  }
+
+  if (menuOpen) {
+    document.addEventListener(
+      "click",
+      handleClickOutside
+    );
+  }
+
+  return () => {
+    document.removeEventListener(
+      "click",
+      handleClickOutside
+    );
+  };
+}, [menuOpen]);
 
   // ─── LIKE ───────────────────────────────────────────
 
@@ -198,11 +225,9 @@ export default function DetailPostPage() {
         throw new Error(data.message);
       }
 
-      setLiked((prev) => !prev);
+      setLiked(data.liked);
+setLikeCount(data.likeCount);
 
-      setLikeCount((prev) =>
-        liked ? prev - 1 : prev + 1
-      );
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -219,6 +244,68 @@ export default function DetailPostPage() {
       await fetchPost();
     }
   }
+
+  async function handleUpdatePost() {
+  if (!post || !token) return navigate("/login");
+
+  if (!editContent.trim() && !post.imageUrl) {
+    toast.error("Isi postingan tidak boleh kosong.");
+    return;
+  }
+
+  try {
+    setSaving(true);
+
+    const res = await fetch(`${API_URL}/posts/${post.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        content: editContent.trim(),
+        imageUrl: post.imageUrl,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!data.success) throw new Error(data.message);
+
+    toast.success("Postingan berhasil diperbarui.");
+    setEditOpen(false);
+    await fetchPost();
+  } catch (error: any) {
+    toast.error(error.message || "Gagal update postingan.");
+  } finally {
+    setSaving(false);
+  }
+}
+
+async function handleDeletePost() {
+  if (!post || !token) return navigate("/login");
+
+  const yakin = confirm("Yakin ingin menghapus postingan ini?");
+  if (!yakin) return;
+
+  try {
+    const res = await fetch(`${API_URL}/posts/${post.id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (!data.success) throw new Error(data.message);
+
+    toast.success("Postingan berhasil dihapus.");
+    navigate("/home");
+  } catch (error: any) {
+    toast.error(error.message || "Gagal menghapus postingan.");
+  }
+}
 
   // ─── RENDER ─────────────────────────────────────────
 
@@ -241,53 +328,7 @@ export default function DetailPostPage() {
 
         <div className="flex max-w-[1920px] mx-auto min-h-screen">
 
-          {/* SIDEBAR */}
-          <aside className="hidden lg:flex flex-col w-[550px] sticky top-0 h-screen bg-[#101010]">
-            <div className="pl-5 pt-6 pb-8">
-              <img
-                src={logoThreads}
-                alt="Threads"
-                className="w-8 h-8 object-contain"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1 px-3">
-              {[
-                { id: "home", Icon: Home },
-                { id: "create", Icon: Plus },
-                { id: "activity", Icon: Heart },
-                { id: "profile", Icon: User },
-              ].map(({ id, Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => {
-                    if (id === "home") {
-                      navigate("/");
-                    } else if (!token) {
-                      navigate("/login");
-                    }
-                  }}
-                  className={`
-                    w-14
-                    h-14
-                    rounded-2xl
-                    flex
-                    items-center
-                    justify-center
-                    transition-all
-                    duration-200
-                    ${
-                      id === "home"
-                        ? "text-white"
-                        : "text-[#777] hover:text-white hover:bg-[#181818]"
-                    }
-                  `}
-                >
-                  <Icon size={28} />
-                </button>
-              ))}
-            </div>
-          </aside>
+          <LoggedInSidebar onCreateThread={() => setIsCreateOpen(true)} />
 
           {/* MAIN */}
           <main className="flex-1 min-w-20 lg:max-w-[960px] pt-[56px] lg:pt-0">
@@ -320,43 +361,6 @@ export default function DetailPostPage() {
               </button>
 
               <h1 className="text-[17px] font-semibold">
-                Thread
-              </h1>
-            </div>
-
-            {/* MOBILE HEADER */}
-            <div
-              className="
-                lg:hidden
-                fixed
-                top-0
-                left-0
-                right-0
-                z-50
-                h-[56px]
-                flex
-                items-center
-                gap-3
-                px-4
-                bg-[#101010]/90
-                backdrop-blur-xl
-                border-b
-                border-[#2a2a2a]
-              "
-            >
-              <button
-                onClick={() => navigate(-1)}
-                className="
-                  p-2
-                  rounded-full
-                  hover:bg-[#1a1a1a]
-                  transition-colors
-                "
-              >
-                <ArrowLeft size={20} />
-              </button>
-
-              <h1 className="text-[16px] font-semibold">
                 Thread
               </h1>
             </div>
@@ -408,9 +412,56 @@ export default function DetailPostPage() {
                             </span>
                           </div>
 
-                          <button className="text-[#777] hover:text-white transition-colors">
-                            <MoreHorizontal size={18} />
-                          </button>
+
+  <div className="relative">
+    <button
+      onClick={(e) => {
+  e.stopPropagation();
+  setMenuOpen((prev) => !prev);
+}}
+      className="text-[#777] hover:text-white transition-colors"
+    >
+      <MoreHorizontal size={18} />
+    </button>
+
+    {menuOpen && (
+  <div className="absolute right-0 top-7 z-40 w-36 rounded-xl border border-[#262626] bg-[#111] overflow-hidden shadow-xl">
+    
+    <button
+      onClick={() => {
+        if (currentUser?.id !== post.user.id) {
+          toast.error("Anda tidak punya akses untuk mengedit postingan ini.");
+          setMenuOpen(false);
+          return;
+        }
+
+        setEditContent(post.content);
+        setEditOpen(true);
+        setMenuOpen(false);
+      }}
+      className="w-full text-left px-4 py-2 text-sm hover:bg-[#1a1a1a]"
+    >
+      Edit
+    </button>
+
+    <button
+      onClick={() => {
+        if (currentUser?.id !== post.user.id) {
+          toast.error("Anda tidak punya akses untuk menghapus postingan ini.");
+          setMenuOpen(false);
+          return;
+        }
+
+        handleDeletePost();
+      }}
+      className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#1a1a1a]"
+    >
+      Delete
+    </button>
+
+  </div>
+)}
+</div>
                         </div>
 
                         {/* CONTENT */}
@@ -491,16 +542,6 @@ export default function DetailPostPage() {
                             className="text-[#777] hover:text-white transition-colors"
                           >
                             <MessageCircle size={20} />
-                          </button>
-
-                          {/* REPOST */}
-                          <button className="text-[#777] hover:text-white transition-colors">
-                            <Repeat2 size={20} />
-                          </button>
-
-                          {/* SHARE */}
-                          <button className="text-[#777] hover:text-white transition-colors">
-                            <Send size={20} />
                           </button>
                         </div>
                       </div>
@@ -586,18 +627,42 @@ export default function DetailPostPage() {
             "
           />
         </div>
-
-        {/* MOBILE NAV */}
-        <MobileBottomNav
-          currentUser={currentUser}
-          activePage="home"
-          onNav={(page) => {
-            if (page === "home") {
-              navigate("/");
-            }
-          }}
-        />
       </div>
+    {editOpen && (
+  <div className="fixed inset-0 z-[99999] bg-black/70 flex items-center justify-center px-4">
+    <div className="w-full max-w-md bg-[#111] border border-[#262626] rounded-2xl p-5">
+      <h2 className="text-lg font-bold mb-4">Edit Postingan</h2>
+
+      <textarea
+        value={editContent}
+        onChange={(e) => setEditContent(e.target.value)}
+        className="w-full min-h-[140px] bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3 outline-none text-white resize-none"
+        placeholder="Tulis postingan..."
+      />
+
+      <div className="flex gap-3 mt-4">
+        <button
+          onClick={() => setEditOpen(false)}
+          className="flex-1 border border-[#333] rounded-xl py-2 hover:bg-[#1a1a1a]"
+        >
+          Batal
+        </button>
+
+        <button
+          onClick={handleUpdatePost}
+          disabled={saving}
+          className="flex-1 bg-white text-black font-bold rounded-xl py-2 disabled:opacity-60"
+        >
+          {saving ? "Menyimpan..." : "Simpan"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+  <CreatePostModal
+  open={isCreateOpen}
+  onClose={() => setIsCreateOpen(false)}
+/>
     </>
   );
 }

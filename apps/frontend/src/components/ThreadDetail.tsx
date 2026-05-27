@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   Loader2,
   MoreHorizontal,
-  Plus,
 } from "lucide-react";
 
 import { API_URL } from "@/services/api";
@@ -70,6 +69,21 @@ export default function ThreadDetail({
 }: Props) {
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+  function handleClickOutside() {
+    setMenuOpen(false);
+  }
+
+  if (menuOpen) {
+    document.addEventListener("click", handleClickOutside);
+  }
+
+  return () => {
+    document.removeEventListener("click", handleClickOutside);
+  };
+}, [menuOpen]);
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";
@@ -167,13 +181,99 @@ export default function ThreadDetail({
             Cancel
           </button>
 
-          <span className="font-semibold text-sm">
-            Reply
-          </span>
+          <span className="font-semibold text-sm text-white">
+  Reply
+</span>
 
-          <button className="text-zinc-500">
-            <MoreHorizontal size={18} />
-          </button>
+          <div className="relative">
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      setMenuOpen((prev) => !prev);
+    }}
+    className="text-[#777] hover:text-white transition-colors"
+  >
+    <MoreHorizontal size={18} />
+  </button>
+
+  {menuOpen && (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="
+        absolute
+        right-0
+        top-7
+        z-40
+        w-36
+        rounded-xl
+        border
+        border-[#262626]
+        bg-[#111]
+        overflow-hidden
+        shadow-xl
+      "
+    >
+      {/* EDIT */}
+      <button
+        onClick={() => {
+          if (currentUser?.id !== post.user.id) {
+            toast.error(
+              "Anda tidak punya akses untuk mengedit postingan ini."
+            );
+
+            setMenuOpen(false);
+            return;
+          }
+
+          setEditContent(post.content);
+          setEditOpen(true);
+          setMenuOpen(false);
+        }}
+        className="
+          w-full
+          text-left
+          px-4
+          py-3
+          text-sm
+          text-white
+          hover:bg-[#1a1a1a]
+          transition
+        "
+      >
+        Edit
+      </button>
+
+      {/* DELETE */}
+      <button
+        onClick={() => {
+          if (currentUser?.id !== post.user.id) {
+            toast.error(
+              "Anda tidak punya akses untuk menghapus postingan ini."
+            );
+
+            setMenuOpen(false);
+            return;
+          }
+
+          handleDeletePost();
+          setMenuOpen(false);
+        }}
+        className="
+          w-full
+          text-left
+          px-4
+          py-3
+          text-sm
+          text-red-500
+          hover:bg-[#1a1a1a]
+          transition
+        "
+      >
+        Delete
+      </button>
+    </div>
+  )}
+</div>
         </div>
 
         {/* Post */}
@@ -181,9 +281,19 @@ export default function ThreadDetail({
           <div className="flex gap-3">
 
             {/* Avatar */}
-            <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center font-semibold text-white">
-              {post.user.name?.charAt(0).toUpperCase()}
-            </div>
+            <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+  {post.user.avatarUrl ? (
+    <img
+      src={post.user.avatarUrl}
+      alt={post.user.name}
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <div className="w-full h-full bg-zinc-700 flex items-center justify-center font-semibold text-white">
+      {post.user.name?.charAt(0).toUpperCase()}
+    </div>
+  )}
+</div>
 
             <div className="flex-1">
 
@@ -205,14 +315,27 @@ export default function ThreadDetail({
 
               {/* Image */}
               {post.imageUrl && (
-                <div className="mt-3 rounded-2xl overflow-hidden border border-[#2a2a2a]">
-                  <img
-                    src={post.imageUrl}
-                    alt=""
-                    className="w-full max-h-[320px] object-cover"
-                  />
-                </div>
-              )}
+  <div
+    className="
+      mt-4
+      rounded-2xl
+      overflow-hidden
+      border
+      border-[#2a2a2a]
+      bg-black
+    "
+  >
+    <img
+      src={post.imageUrl}
+      alt="Post"
+      className="
+        w-full
+        max-h-[600px]
+        object-cover
+      "
+    />
+  </div>
+)}
             </div>
           </div>
         </div>
@@ -221,9 +344,17 @@ export default function ThreadDetail({
         <div className="border-t border-[#2a2a2a] px-5 py-4 flex gap-3">
 
           {/* Current User Avatar */}
-          <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center text-sm font-semibold text-zinc-300">
-            {currentUser?.name?.charAt(0).toUpperCase() || "U"}
-          </div>
+          <div className="w-9 h-9 rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center text-sm font-semibold text-zinc-300">
+  {currentUser?.avatarUrl ? (
+    <img
+      src={currentUser.avatarUrl}
+      alt={currentUser.name}
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    currentUser?.name?.charAt(0).toUpperCase() || "U"
+  )}
+</div>
 
           <div className="flex-1">
 
@@ -246,12 +377,7 @@ export default function ThreadDetail({
             />
 
             {/* Bottom */}
-            <div className="flex items-center justify-between mt-3">
-
-              <button className="flex items-center gap-1 text-zinc-500 text-sm">
-                <Plus size={15} />
-                Post options
-              </button>
+            <div className="flex justify-end mt-3">
 
               <button
                 onClick={handleSubmit}

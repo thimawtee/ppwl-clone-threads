@@ -357,7 +357,26 @@ const app = new Elysia()
   };
 })
 
-.get("/posts/:id", async ({ params }) => {
+.get("/posts/:id", async ({ params, headers }) => {
+  let currentUserId: string | null = null;
+
+  const authHeader = headers.authorization;
+
+  if (authHeader?.startsWith("Bearer ")) {
+    try {
+      const token = authHeader.split(" ")[1];
+
+      const decoded: any = jwt.verify(
+        token,
+        process.env.JWT_SECRET || "secret-uas-ppwl"
+      );
+
+      currentUserId = decoded.userId;
+    } catch {
+      currentUserId = null;
+    }
+  }
+
   const post = await prisma.post.findUnique({
     where: {
       id: params.id,
@@ -408,6 +427,9 @@ const app = new Elysia()
       user: post.user,
       likeCount: post.likes.length,
       commentCount: post.comments.length,
+      liked: currentUserId
+        ? post.likes.some((like) => like.userId === currentUserId)
+        : false,
       comments: post.comments,
     },
   };
@@ -442,62 +464,6 @@ const app = new Elysia()
   return {
     success: true,
     message: "Dummy komentar berhasil dibuat",
-  };
-})
-
-.get("/posts/:id", async ({ params }) => {
-  const post = await prisma.post.findUnique({
-    where: {
-      id: params.id,
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          username: true,
-          avatarUrl: true,
-        },
-      },
-      likes: true,
-      comments: {
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              avatarUrl: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!post) {
-    return {
-      success: false,
-      message: "Postingan tidak ditemukan",
-    };
-  }
-
-  return {
-    success: true,
-    message: "Detail postingan berhasil diambil",
-    data: {
-      id: post.id,
-      content: post.content,
-      imageUrl: post.imageUrl,
-      createdAt: post.createdAt,
-      user: post.user,
-      likeCount: post.likes.length,
-      commentCount: post.comments.length,
-      comments: post.comments,
-    },
   };
 })
 
