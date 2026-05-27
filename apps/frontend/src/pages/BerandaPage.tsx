@@ -111,6 +111,7 @@ function PostCard({
   const [likeCount, setLikeCount] = useState(post.likeCount);
 
   const [imageOpen, setImageOpen] = useState(false);
+  const navigate = useNavigate();
 
   async function handleLike() {
     if (!isLoggedIn || !token) {
@@ -161,9 +162,14 @@ function PostCard({
               </span>
             </div>
 
-            <button className="text-[#777] hover:text-white transition-colors">
-              <MoreHorizontal size={18} />
-            </button>
+            <button
+  onClick={() => {
+    navigate("/login");
+  }}
+  className="text-[#777] hover:text-white transition-colors"
+>
+  <MoreHorizontal size={18} />
+</button>
           </div>
 
           {/* Content */}
