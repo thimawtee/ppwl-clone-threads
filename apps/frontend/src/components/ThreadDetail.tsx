@@ -42,6 +42,8 @@ interface Props {
   currentUser: User | null;
   isLoggedIn: boolean;
   onLoginRequired: () => void;
+  onEditPost: () => void;
+  onDeletePost: () => void;
 }
 
 // ─── Helper ─────────────────────────────────────
@@ -66,6 +68,8 @@ export default function ThreadDetail({
   onClose,
   token,
   currentUser,
+  onEditPost,
+  onDeletePost,
 }: Props) {
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -104,6 +108,7 @@ export default function ThreadDetail({
   // ─── Submit Comment ─────────────────────
 
   async function handleSubmit() {
+    if (!post) return;
     if (!text.trim()) return;
 
     try {
@@ -144,7 +149,7 @@ export default function ThreadDetail({
   }
 
   return (
-    <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-[99999] flex items-center justify-center px-4">
 
       {/* Overlay */}
       <div
@@ -158,10 +163,8 @@ export default function ThreadDetail({
           relative
           z-10
           w-full
-          sm:max-w-[620px]
-          bg-[#181818]
-          rounded-t-3xl
-          sm:rounded-3xl
+max-w-[620px]
+rounded-3xl
           border
           border-[#2a2a2a]
           overflow-hidden
@@ -215,62 +218,36 @@ export default function ThreadDetail({
     >
       {/* EDIT */}
       <button
-        onClick={() => {
-          if (currentUser?.id !== post.user.id) {
-            toast.error(
-              "Anda tidak punya akses untuk mengedit postingan ini."
-            );
+  onClick={() => {
+    if (currentUser?.id !== post.user.id) {
+      toast.error("Anda tidak punya akses untuk mengedit postingan ini.");
+      setMenuOpen(false);
+      return;
+    }
 
-            setMenuOpen(false);
-            return;
-          }
+    setMenuOpen(false);
+    onEditPost();
+  }}
+  className="w-full text-left px-4 py-3 text-sm text-white hover:bg-[#1a1a1a] transition"
+>
+  Edit
+</button>
 
-          setEditContent(post.content);
-          setEditOpen(true);
-          setMenuOpen(false);
-        }}
-        className="
-          w-full
-          text-left
-          px-4
-          py-3
-          text-sm
-          text-white
-          hover:bg-[#1a1a1a]
-          transition
-        "
-      >
-        Edit
-      </button>
+<button
+  onClick={() => {
+    if (currentUser?.id !== post.user.id) {
+      toast.error("Anda tidak punya akses untuk menghapus postingan ini.");
+      setMenuOpen(false);
+      return;
+    }
 
-      {/* DELETE */}
-      <button
-        onClick={() => {
-          if (currentUser?.id !== post.user.id) {
-            toast.error(
-              "Anda tidak punya akses untuk menghapus postingan ini."
-            );
-
-            setMenuOpen(false);
-            return;
-          }
-
-          handleDeletePost();
-          setMenuOpen(false);
-        }}
-        className="
-          w-full
-          text-left
-          px-4
-          py-3
-          text-sm
-          text-red-500
-          hover:bg-[#1a1a1a]
-          transition
-        "
-      >
-        Delete
-      </button>
+    setMenuOpen(false);
+    onDeletePost();
+  }}
+  className="w-full text-left px-4 py-3 text-sm text-red-500 hover:bg-[#1a1a1a] transition"
+>
+  Delete
+</button>
     </div>
   )}
 </div>

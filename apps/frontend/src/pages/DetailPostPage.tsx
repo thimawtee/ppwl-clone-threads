@@ -19,6 +19,7 @@ import LoggedInSidebar from "@/components/loggedin/LoggedInSidebar";
 
 import ThreadDetail from "@/components/ThreadDetail";
 import CreatePostModal from "@/components/CreatePostModal";
+import FloatingCreateButton from "@/components/loggedin/FloatingCreateButton";
 
 // ─── TYPES ─────────────────────────────────────────────
 
@@ -313,25 +314,44 @@ async function handleDeletePost() {
     <>
       {/* REPLY MODAL */}
       <ThreadDetail
-        post={post}
-        isOpen={replyOpen}
-        onClose={handleReplyClose}
-        token={token}
-        currentUser={currentUser}
-        isLoggedIn={isLoggedIn}
-        onLoginRequired={() =>
-          navigate("/login")
-        }
-      />
+  post={post}
+  isOpen={replyOpen}
+  onClose={handleReplyClose}
+  token={token}
+  currentUser={currentUser}
+  isLoggedIn={isLoggedIn}
+  onLoginRequired={() => navigate("/login")}
+  onEditPost={() => {
+    setEditContent(post?.content || "");
+    setEditOpen(true);
+  }}
+  onDeletePost={handleDeletePost}
+/>
 
       <div className="min-h-screen bg-[#101010] text-white">
 
-        <div className="flex max-w-[1920px] mx-auto min-h-screen">
+        <div className="w-full min-h-screen flex justify-center">
 
-          <LoggedInSidebar onCreateThread={() => setIsCreateOpen(true)} />
+          <div className="lg:w-[280px] xl:w-[320px] lg:flex-shrink-0">
+  <LoggedInSidebar
+    onCreateThread={() => setIsCreateOpen(true)}
+  />
+</div>
 
           {/* MAIN */}
-          <main className="flex-1 min-w-20 lg:max-w-[960px] pt-[56px] lg:pt-0">
+          <main
+  className="
+    flex-1
+    min-w-0
+    max-w-[680px]
+    pt-[56px]
+    lg:pt-0
+    border-l
+    border-r
+    border-[#1f1f1f]
+    bg-[#101010]
+  "
+>
 
             {/* DESKTOP HEADER */}
             <div
@@ -366,15 +386,7 @@ async function handleDeletePost() {
             </div>
 
             {/* CONTENT */}
-            <div
-              className="
-                lg:mt-1
-                border
-                border-[#2a2a2a]
-                bg-[#101010]
-                lg:bg-[#1E1E1E]
-              "
-            >
+            <div className="bg-[#101010] min-h-screen">
 
               {/* LOADING */}
               {loading && (
@@ -473,22 +485,24 @@ async function handleDeletePost() {
                         {post.imageUrl && (
                           <div className="mt-4">
                             <div
-                              className="
-                                rounded-2xl
-                                overflow-hidden
-                                border
-                                border-[#2a2a2a]
-                                bg-black
-                              "
+  className="
+    rounded-2xl
+    overflow-hidden
+    border
+    border-[#2a2a2a]
+    bg-black
+    w-fit
+    max-w-full
+  "
                             >
                               <img
                                 src={post.imageUrl}
                                 alt="Post"
                                 className="
-                                  w-full
-                                  max-h-[600px]
-                                  object-cover
-                                "
+  max-w-full
+  max-h-[720px]
+  object-cover
+"
                               />
                             </div>
                           </div>
@@ -616,21 +630,12 @@ async function handleDeletePost() {
           </main>
 
           {/* RIGHT SIDEBAR */}
-          <aside
-            className="
-              hidden
-              lg:block
-              w-[340px]
-              flex-shrink-0
-              pt-[56px]
-              px-5
-            "
-          />
+          <div className="hidden xl:block w-[320px]" />
         </div>
       </div>
     {editOpen && (
   <div className="fixed inset-0 z-[99999] bg-black/70 flex items-center justify-center px-4">
-    <div className="w-full max-w-md bg-[#111] border border-[#262626] rounded-2xl p-5">
+    <div className="w-full max-w-md bg-[#181818] border border-[#333] rounded-2xl p-5 text-white">
       <h2 className="text-lg font-bold mb-4">Edit Postingan</h2>
 
       <textarea
@@ -643,7 +648,7 @@ async function handleDeletePost() {
       <div className="flex gap-3 mt-4">
         <button
           onClick={() => setEditOpen(false)}
-          className="flex-1 border border-[#333] rounded-xl py-2 hover:bg-[#1a1a1a]"
+          className="flex-1 border border-[#444] text-white rounded-xl py-2 hover:bg-[#222]"
         >
           Batal
         </button>
@@ -659,6 +664,10 @@ async function handleDeletePost() {
     </div>
   </div>
 )}
+  <div className="hidden lg:block">
+  <FloatingCreateButton onClick={() => setIsCreateOpen(true)} />
+</div>
+  
   <CreatePostModal
   open={isCreateOpen}
   onClose={() => setIsCreateOpen(false)}

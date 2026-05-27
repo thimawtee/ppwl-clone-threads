@@ -616,11 +616,25 @@ export default function BerandaPage() {
   if (selectedPost) {
     return (
       <ThreadDetail
-        post={selectedPost}
-        onBack={() => setSelectedPost(null)}
-        isLoggedIn={isLoggedIn}
-        onLoginRequired={() => navigate("/login")}
-      />
+  post={selectedPost}
+  isOpen={!!selectedPost}
+  onClose={() => setSelectedPost(null)}
+  token={token}
+  currentUser={
+  currentUser
+    ? {
+        id: currentUser.id,
+        name: currentUser.name,
+        username: currentUser.username,
+        avatarUrl: currentUser.avatarUrl ?? null,
+      }
+    : null
+}
+  isLoggedIn={isLoggedIn}
+  onLoginRequired={() => navigate("/login")}
+  onEditPost={() => {}}
+  onDeletePost={() => {}}
+/>
     );
   }
 
