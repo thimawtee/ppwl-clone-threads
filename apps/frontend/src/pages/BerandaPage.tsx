@@ -698,8 +698,8 @@ export default function BerandaPage() {
                 className="
         absolute
         left-2
-        w-6
-        h-6
+        w-8
+        h-8
         rounded-full
         border
         border-[#2a2a2a]
@@ -712,7 +712,7 @@ export default function BerandaPage() {
         transition
       "
               >
-                <ArrowLeft size={16} />
+                <ArrowLeft size={20} />
               </button>
             )}
 
