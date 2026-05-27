@@ -1,7 +1,14 @@
-import { useState } from "react";
-import { ArrowLeft, Loader2, Send } from "lucide-react";
-import { useAuthStore } from "../stores/auth.store";
+import { useEffect, useState } from "react";
+import {
+  Loader2,
+  MoreHorizontal,
+  Plus,
+} from "lucide-react";
+
 import { API_URL } from "@/services/api";
+import { toast } from "sonner";
+
+// ─── Types ─────────────────────────────────────
 
 interface User {
   id: string;
@@ -28,181 +35,252 @@ interface Post {
   comments?: Comment[];
 }
 
-export interface ThreadDetailProps {
-  post: Post;
-  onBack: () => void;
+interface Props {
+  post: Post | null;
+  isOpen: boolean;
+  onClose: (submitted: boolean) => void;
+  token: string | null;
+  currentUser: User | null;
   isLoggedIn: boolean;
   onLoginRequired: () => void;
 }
 
+// ─── Helper ─────────────────────────────────────
+
+function timeAgo(dateStr: string): string {
+  const diff = Math.floor(
+    (Date.now() - new Date(dateStr).getTime()) / 1000
+  );
+
+  if (diff < 60) return `${diff}s`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+
+  return `${Math.floor(diff / 86400)}d`;
+}
+
+// ─── Component ─────────────────────────────────────
+
 export default function ThreadDetail({
   post,
-  onBack,
-  isLoggedIn,
-  onLoginRequired,
-}: ThreadDetailProps) {
-  const BACKEND_URL = API_URL;
-
-  const [commentText, setCommentText] = useState("");
+  isOpen,
+  onClose,
+  token,
+  currentUser,
+}: Props) {
+  const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  const token = useAuthStore((state) => state.token);
-  const comments = post.comments || [];
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
 
-  async function handleSendComment() {
-    if (!isLoggedIn) {
-      onLoginRequired();
-      return;
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setText("");
     }
+  }, [isOpen]);
 
-    if (!commentText.trim()) return;
+  if (!isOpen || !post) return null;
+
+  // ─── Submit Comment ─────────────────────
+
+  async function handleSubmit() {
+    if (!text.trim()) return;
 
     try {
       setSubmitting(true);
 
-      const res = await fetch(`${BACKEND_URL}/comments`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  },
-  body: JSON.stringify({
-    postId: post.id,
-    content: commentText.trim(),
-  }),
-});
+      const res = await fetch(`${API_URL}/comments`, {
+        method: "POST",
 
-      const result = await res.json();
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
 
-      if (result.success) {
-        setCommentText("");
-        window.location.reload();
-      } else {
-        alert(result.message || "Gagal mengirim komentar");
+        body: JSON.stringify({
+          postId: post.id,
+          content: text,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        throw new Error(data.message);
       }
-    } catch (err) {
-      alert("Terjadi kesalahan saat mengirim komentar.");
+
+      toast.success("Komentar berhasil dibuat");
+
+      setText("");
+
+      onClose(true);
+    } catch (error: any) {
+      toast.error(
+        error.message || "Gagal membuat komentar"
+      );
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-[#101010] text-white">
-      <div className="sticky top-0 z-50 bg-[#101010]/90 backdrop-blur-md border-b border-[#1e1e1e] px-4 py-3 flex items-center gap-4">
-        <button
-          onClick={onBack}
-          className="p-1 rounded-full hover:bg-[#1a1a1a] transition-colors"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <span className="font-bold text-lg">Thread</span>
-      </div>
+    <div className="fixed inset-0 z-[99999] flex items-end sm:items-center justify-center">
 
-      <div className="p-4 border-b border-[#1e1e1e]">
-        <div className="flex gap-3">
-          <div className="w-9 h-9 rounded-full bg-zinc-700 flex-shrink-0 flex items-center justify-center text-sm font-bold">
-            {post.user.name ? post.user.name[0].toUpperCase() : "U"}
+      {/* Overlay */}
+      <div
+        onClick={() => onClose(false)}
+        className="absolute inset-0 bg-black/80 backdrop-blur-md"
+      />
+
+      {/* Modal */}
+      <div
+        className="
+          relative
+          z-10
+          w-full
+          sm:max-w-[620px]
+          bg-[#181818]
+          rounded-t-3xl
+          sm:rounded-3xl
+          border
+          border-[#2a2a2a]
+          overflow-hidden
+          shadow-2xl
+          max-h-[90vh]
+          flex
+          flex-col
+        "
+      >
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#2a2a2a]">
+          <button
+            onClick={() => onClose(false)}
+            className="text-sm text-zinc-400 hover:text-white transition"
+          >
+            Cancel
+          </button>
+
+          <span className="font-semibold text-sm">
+            Reply
+          </span>
+
+          <button className="text-zinc-500">
+            <MoreHorizontal size={18} />
+          </button>
+        </div>
+
+        {/* Post */}
+        <div className="flex-1 overflow-y-auto px-5 py-5">
+          <div className="flex gap-3">
+
+            {/* Avatar */}
+            <div className="w-10 h-10 rounded-full bg-zinc-700 flex items-center justify-center font-semibold text-white">
+              {post.user.name?.charAt(0).toUpperCase()}
+            </div>
+
+            <div className="flex-1">
+
+              {/* User */}
+              <div className="flex items-center gap-2 mb-1">
+                <span className="font-semibold text-[14px] text-white">
+                  {post.user.username || post.user.name}
+                </span>
+
+                <span className="text-[12px] text-zinc-500">
+                  {timeAgo(post.createdAt)}
+                </span>
+              </div>
+
+              {/* Content */}
+              <p className="text-[14px] text-zinc-300 whitespace-pre-wrap leading-[1.6]">
+                {post.content}
+              </p>
+
+              {/* Image */}
+              {post.imageUrl && (
+                <div className="mt-3 rounded-2xl overflow-hidden border border-[#2a2a2a]">
+                  <img
+                    src={post.imageUrl}
+                    alt=""
+                    className="w-full max-h-[320px] object-cover"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Reply Input */}
+        <div className="border-t border-[#2a2a2a] px-5 py-4 flex gap-3">
+
+          {/* Current User Avatar */}
+          <div className="w-9 h-9 rounded-full bg-zinc-800 flex items-center justify-center text-sm font-semibold text-zinc-300">
+            {currentUser?.name?.charAt(0).toUpperCase() || "U"}
           </div>
 
           <div className="flex-1">
-            <h4 className="font-semibold text-[15px]">
-              {post.user.username || post.user.name}
-            </h4>
 
-            <p className="text-[15px] text-[#e0e0e0] mt-1 whitespace-pre-wrap">
-              {post.content}
-            </p>
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={`Reply to ${
+                post.user.username || post.user.name
+              }...`}
+              rows={3}
+              className="
+                w-full
+                bg-transparent
+                outline-none
+                resize-none
+                text-[14px]
+                text-white
+                placeholder:text-zinc-500
+              "
+            />
 
-            {post.imageUrl && (
-              <img
-                src={post.imageUrl}
-                alt="Post media"
-                className="mt-3 rounded-xl max-h-80 w-full object-cover border border-[#2a2a2a]"
-              />
-            )}
-          </div>
-        </div>
-      </div>
+            {/* Bottom */}
+            <div className="flex items-center justify-between mt-3">
 
-      {isLoggedIn ? (
-        <div className="p-4 border-b border-[#1e1e1e] bg-[#0a0a0a]">
-          <div className="flex gap-3 items-start">
-            <div className="w-8 h-8 rounded-full bg-zinc-600 flex-shrink-0 flex items-center justify-center text-xs font-bold">
-              Me
-            </div>
-
-            <div className="flex-1 flex gap-2">
-              <input
-                type="text"
-                placeholder="Reply to this thread..."
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendComment()}
-                className="flex-1 bg-transparent text-[14px] outline-none placeholder-[#555]"
-              />
+              <button className="flex items-center gap-1 text-zinc-500 text-sm">
+                <Plus size={15} />
+                Post options
+              </button>
 
               <button
-                onClick={handleSendComment}
-                disabled={submitting || !commentText.trim()}
-                className="text-white hover:text-blue-400 disabled:opacity-40 transition-colors"
+                onClick={handleSubmit}
+                disabled={!text.trim() || submitting}
+                className="
+                  bg-white
+                  text-black
+                  px-5
+                  py-1.5
+                  rounded-full
+                  text-sm
+                  font-semibold
+                  disabled:opacity-40
+                  hover:opacity-90
+                  transition
+                "
               >
                 {submitting ? (
-                  <Loader2 size={18} className="animate-spin" />
+                  <Loader2
+                    size={16}
+                    className="animate-spin"
+                  />
                 ) : (
-                  <Send size={18} />
+                  "Post"
                 )}
               </button>
             </div>
           </div>
         </div>
-      ) : (
-        <div className="p-4 text-center border-b border-[#1e1e1e] text-[#666] text-sm">
-          Silakan{" "}
-          <button
-            onClick={onLoginRequired}
-            className="text-white underline font-semibold"
-          >
-            Login
-          </button>{" "}
-          untuk membalas thread ini.
-        </div>
-      )}
-
-      <div className="divide-y divide-[#1e1e1e]">
-        {comments.length === 0 ? (
-          <div className="p-8 text-center text-sm text-[#555]">
-            Belum ada komentar.
-          </div>
-        ) : (
-          comments.map((comment) => (
-            <div key={comment.id} className="p-4 flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-zinc-800 flex-shrink-0 flex items-center justify-center text-xs font-bold text-zinc-400">
-                {comment.user?.name
-                  ? comment.user.name[0].toUpperCase()
-                  : "U"}
-              </div>
-
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-sm text-white">
-                    {comment.user?.username ||
-                      comment.user?.name ||
-                      "Anonymous"}
-                  </span>
-
-                  <span className="text-xs text-[#666]">
-                    {new Date(comment.createdAt).toLocaleString()}
-                  </span>
-                </div>
-
-                <p className="text-[14px] text-[#ccc] mt-0.5 whitespace-pre-wrap">
-                  {comment.content}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
       </div>
     </div>
   );
