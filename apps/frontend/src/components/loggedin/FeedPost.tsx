@@ -153,15 +153,17 @@ export default function FeedPost({ post }: { post: Post }) {
 
   return (
     <article
-      className="
-        border-b
-        border-[#2a2a2a]
-        px-4
-        py-4
-        lg:px-6
-        lg:py-5
-      "
-    >
+  onClick={() => navigate(`/post/${post.id}`)}
+  className="
+    border-b
+    border-[#2a2a2a]
+    px-4
+    py-4
+    lg:px-6
+    lg:py-5
+    cursor-pointer
+  "
+>
       <div className="flex gap-3">
         {/* Avatar */}
         <div className="relative">
@@ -197,49 +199,49 @@ export default function FeedPost({ post }: { post: Post }) {
 
             {/* More Button */}
             <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="
-                text-[#777]
-                hover:text-white
-                transition-all
-                duration-200
-                hover:scale-110
-                active:scale-95
-              "
-            >
-              <MoreHorizontal size={18} />
-            </button>
+  onClick={(e) => {
+    e.stopPropagation();
+    setMenuOpen(!menuOpen);
+  }}
+  className="text-[#777] hover:text-white transition-all duration-200 hover:scale-110 active:scale-95"
+>
+  <MoreHorizontal size={18} />
+</button>
 
             {/* Dropdown */}
             {menuOpen && (
               <div className="absolute right-0 top-7 z-20 w-36 rounded-xl border border-[#262626] bg-[#111] overflow-hidden shadow-xl">
                 <button
-  onClick={() => {
-    if (currentUser?.id !== post.user.id) {
-  toast.error("Anda tidak punya akses untuk mengedit postingan ini.");
-  setMenuOpen(false);
-  return;
-}
+  onClick={(e) => {
+  e.stopPropagation();
 
-setEditOpen(true);
-setMenuOpen(false);
-  }}
+  if (currentUser?.id !== post.user.id) {
+    toast.error("Anda tidak punya akses untuk mengedit postingan ini.");
+    setMenuOpen(false);
+    return;
+  }
+
+  setEditOpen(true);
+  setMenuOpen(false);
+}}
   className="w-full text-left px-4 py-2 text-sm text-white hover:bg-[#1a1a1a]"
 >
   Edit
 </button>
 
 <button
-  onClick={() => {
-    if (currentUser?.id !== post.user.id) {
-  toast.error("Anda tidak punya akses untuk menghapus postingan ini.");
-  setMenuOpen(false);
-  return;
-}
+  onClick={(e) => {
+  e.stopPropagation();
 
-handleDeletePost();
-setMenuOpen(false);
-  }}
+  if (currentUser?.id !== post.user.id) {
+    toast.error("Anda tidak punya akses untuk menghapus postingan ini.");
+    setMenuOpen(false);
+    return;
+  }
+
+  handleDeletePost();
+  setMenuOpen(false);
+}}
   className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#1a1a1a]"
 >
   Delete
@@ -257,7 +259,10 @@ setMenuOpen(false);
           {post.imageUrl && (
             <>
               <div
-                onClick={() => setImageOpen(true)}
+                onClick={(e) => {
+  e.stopPropagation();
+  setImageOpen(true);
+}}
                 className="
         mt-3
         rounded-2xl
@@ -289,21 +294,25 @@ setMenuOpen(false);
 
               {/* IMAGE POPUP */}
               {imageOpen && (
-                <div
-                  className="
-          fixed
-          inset-0
-          z-[999]
-          bg-black
-          flex
-          items-center
-          justify-center
-          p-4
-        "
-                >
+  <div
+    onClick={(e) => e.stopPropagation()}
+    className="
+      fixed
+      inset-0
+      z-[999]
+      bg-black
+      flex
+      items-center
+      justify-center
+      p-4
+    "
+  >
                   {/* Close Button */}
                   <button
-                    onClick={() => setImageOpen(false)}
+                    onClick={(e) => {
+    e.stopPropagation();
+    setImageOpen(false);
+  }}
                     className="
     absolute
     top-6
@@ -368,18 +377,15 @@ setMenuOpen(false);
           <div className="flex items-center gap-6 mt-4">
             {/* LIKE */}
             <button
-              onClick={handleLike}
-              className={`
-                flex
-                items-center
-                gap-1
-                transition-all
-                duration-200
-                hover:scale-110
-                active:scale-95
-                ${liked ? "text-[#FF0034]" : "text-[#999] hover:text-[#FF0034]"}
-              `}
-            >
+  onClick={(e) => {
+    e.stopPropagation();
+    handleLike();
+  }}
+  className={`
+    flex items-center gap-1 transition-all duration-200 hover:scale-110 active:scale-95
+    ${liked ? "text-[#FF0034]" : "text-[#999] hover:text-[#FF0034]"}
+  `}
+>
               <Heart size={20} className={liked ? "fill-[#FF0034]" : ""} />
 
               <span className="text-sm">{likeCount}</span>
@@ -387,19 +393,12 @@ setMenuOpen(false);
 
             {/* COMMENT */}
             <button
-              onClick={() => navigate(`/post/${post.id}`)}
-              className="
-                flex
-                items-center
-                gap-1
-                text-[#999]
-                transition-all
-                duration-200
-                hover:text-white
-                hover:scale-110
-                active:scale-95
-              "
-            >
+  onClick={(e) => {
+    e.stopPropagation();
+    navigate(`/post/${post.id}`);
+  }}
+  className="flex items-center gap-1 text-[#999] transition-all duration-200 hover:text-white hover:scale-110 active:scale-95"
+>
               <MessageCircle size={20} />
 
               <span className="text-sm">{post.commentCount}</span>
