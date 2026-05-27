@@ -34,7 +34,15 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 3600)}h`;
 }
 
-export default function FeedPost({ post }: { post: Post }) {
+interface FeedPostProps {
+  post: Post;
+  onOpenPost?: () => void;
+}
+
+export default function FeedPost({
+  post,
+  onOpenPost,
+}: FeedPostProps) {
   const navigate = useNavigate();
 
   const [menuOpen, setMenuOpen] = useState(false);
@@ -152,15 +160,17 @@ export default function FeedPost({ post }: { post: Post }) {
 
   return (
     <article
-      className="
-        border-b
-        border-[#2a2a2a]
-        px-4
-        py-4
-        lg:px-6
-        lg:py-5
-      "
-    >
+  onClick={onOpenPost}
+  className="
+    border-b
+    border-[#2a2a2a]
+    px-4
+    py-4
+    lg:px-6
+    lg:py-5
+    cursor-pointer
+  "
+>
       <div className="flex gap-3">
         {/* Avatar */}
         <div className="relative">
@@ -196,7 +206,10 @@ export default function FeedPost({ post }: { post: Post }) {
 
             {/* More Button */}
             <button
-              onClick={() => setMenuOpen(!menuOpen)}
+             onClick={(e) => {
+  e.stopPropagation();
+  setMenuOpen(!menuOpen);
+}}
               className="
                 text-[#777]
                 hover:text-white
@@ -213,10 +226,11 @@ export default function FeedPost({ post }: { post: Post }) {
             {menuOpen && (
               <div className="absolute right-0 top-7 z-20 w-36 rounded-xl border border-[#262626] bg-[#111] overflow-hidden shadow-xl">
                 <button
-                  onClick={() => {
-                    setEditOpen(true);
-                    setMenuOpen(false);
-                  }}
+                  onClick={(e) => {
+  e.stopPropagation();
+  setEditOpen(true);
+  setMenuOpen(false);
+}}
                   className="
                     w-full
                     text-left
@@ -230,7 +244,10 @@ export default function FeedPost({ post }: { post: Post }) {
                 </button>
 
                 <button
-                  onClick={handleDeletePost}
+                 onClick={(e) => {
+  e.stopPropagation();
+  handleDeletePost();
+}}
                   className="
                     w-full
                     text-left
@@ -256,7 +273,10 @@ export default function FeedPost({ post }: { post: Post }) {
           {post.imageUrl && (
             <>
               <div
-                onClick={() => setImageOpen(true)}
+                onClick={(e) => {
+  e.stopPropagation();
+  setImageOpen(true);
+}}
                 className="
         mt-3
         rounded-2xl
@@ -302,7 +322,10 @@ export default function FeedPost({ post }: { post: Post }) {
                 >
                   {/* Close Button */}
                   <button
-                    onClick={() => setImageOpen(false)}
+                    onClick={(e) => {
+  e.stopPropagation();
+  setImageOpen(false);
+}}
                     className="
     absolute
     top-6
@@ -367,7 +390,10 @@ export default function FeedPost({ post }: { post: Post }) {
           <div className="flex items-center gap-6 mt-4">
             {/* LIKE */}
             <button
-              onClick={handleLike}
+              onClick={(e) => {
+  e.stopPropagation();
+  handleLike();
+}}
               className={`
                 flex
                 items-center
@@ -386,7 +412,10 @@ export default function FeedPost({ post }: { post: Post }) {
 
             {/* COMMENT */}
             <button
-              onClick={() => navigate(`/post/${post.id}`)}
+              onClick={(e) => {
+  e.stopPropagation();
+  onOpenPost?.();
+}}
               className="
                 flex
                 items-center

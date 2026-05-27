@@ -5,6 +5,7 @@ import FeedComposer from "../components/loggedin/FeedComposer";
 import FeedPost from "../components/loggedin/FeedPost";
 import { useAuthStore } from "@/stores/auth.store";
 import FloatingCreateButton from "@/components/loggedin/FloatingCreateButton";
+import ThreadDetail from "@/components/ThreadDetail";
 import CreatePostModal from "@/components/CreatePostModal";
 
 interface PostUser {
@@ -32,6 +33,7 @@ export default function HomeLoggedInPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   const token = useAuthStore((state) => state.token);
   const user = useAuthStore((state) => state.user);
@@ -39,6 +41,23 @@ export default function HomeLoggedInPage() {
   const openCreateModal = () => {
     setIsCreateOpen(true);
   };
+  async function handleOpenPost(postId: string) {
+  try {
+    const res = await fetch(`${BACKEND_URL}/posts/${postId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setSelectedPost(data.data);
+    }
+  } catch (error) {
+    console.error("Gagal membuka detail post", error);
+  }
+}
 
   useEffect(() => {
     if (!token || !user) {
@@ -69,6 +88,16 @@ export default function HomeLoggedInPage() {
     fetchPosts();
   }, [BACKEND_URL, token]);
 
+  if (selectedPost) {
+  return (
+    <ThreadDetail
+      post={selectedPost}
+      onBack={() => setSelectedPost(null)}
+      isLoggedIn={true}
+      onLoginRequired={() => {}}
+    />
+  );
+}
   return (
     <div className="min-h-screen bg-[#101010] text-white flex">
       {/* Desktop Sidebar */}
@@ -96,7 +125,11 @@ export default function HomeLoggedInPage() {
     ) : (
       <div className="pb-[84px]">
         {posts.map((post) => (
-          <FeedPost key={post.id} post={post} />
+          <FeedPost
+  key={post.id}
+  post={post}
+  onOpenPost={() => handleOpenPost(post.id)}
+/>
         ))}
       </div>
     )}
@@ -115,7 +148,13 @@ export default function HomeLoggedInPage() {
               {loading ? (
                 <div className="py-20 text-center text-[#777]">Loading...</div>
               ) : (
-                posts.map((post) => <FeedPost key={post.id} post={post} />)
+                posts.map((post) => (
+  <FeedPost
+    key={post.id}
+    post={post}
+    onOpenPost={() => handleOpenPost(post.id)}
+  />
+))
               )}
             </div>
           </div>

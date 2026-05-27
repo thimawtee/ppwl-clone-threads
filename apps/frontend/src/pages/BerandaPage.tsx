@@ -141,7 +141,18 @@ function PostCard({
   }
 
   return (
-    <article className="px-4 py-4 border-b border-[#2a2a2a]">
+    <article
+      onClick={onCommentClick}
+      className="
+    px-4
+    py-4
+    border-b
+    border-[#2a2a2a]
+    cursor-pointer
+    transition-colors
+    hover:bg-white/[0.02]
+  "
+    >
       <div className="flex gap-3">
         {/* Avatar */}
         <div className="flex-shrink-0">
@@ -176,7 +187,10 @@ function PostCard({
             <>
               <div className="mt-3">
                 <div
-                  onClick={() => setImageOpen(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setImageOpen(true);
+                  }}
                   className="
           rounded-2xl
           overflow-hidden
@@ -288,7 +302,10 @@ function PostCard({
           {/* Actions */}
           <div className="flex items-center gap-4 mt-3">
             <button
-              onClick={handleLike}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLike();
+              }}
               className={`flex items-center gap-1 transition-colors ${
                 liked ? "text-rose-500" : "text-[#777] hover:text-white"
               }`}
@@ -299,7 +316,10 @@ function PostCard({
 
             {/* Comment */}
             <button
-              onClick={onCommentClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                onCommentClick();
+              }}
               className="flex items-center gap-1 text-[#777] hover:text-white transition-colors"
             >
               <MessageCircle size={18} />
@@ -605,19 +625,8 @@ export default function BerandaPage() {
     navigate("/login");
   }
 
-  if (selectedPost) {
-    return (
-      <ThreadDetail
-        post={selectedPost}
-        onBack={() => setSelectedPost(null)}
-        isLoggedIn={isLoggedIn}
-        onLoginRequired={() => navigate("/login")}
-      />
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-[#101010] text-white">
+    <div className="bg-[#101010] text-white">
       {/* Mobile Header */}
       <MobileHeader onLogin={() => navigate("/login")} />
 
@@ -678,25 +687,32 @@ export default function BerandaPage() {
   "
             >
               {loading ? (
-                <div className="flex justify-center py-16">
-                  <div className="w-6 h-6 border-2 border-[#444] border-t-white rounded-full animate-spin" />
-                </div>
-              ) : posts.length === 0 ? (
-                <div className="py-16 text-center text-[#666]">
-                  Belum ada postingan.
-                </div>
-              ) : (
-                posts.map((post) => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    token={token}
-                    isLoggedIn={isLoggedIn}
-                    onLoginRequired={() => navigate("/login")}
-                    onCommentClick={() => handleOpenPost(post.id)}
-                  />
-                ))
-              )}
+  <div className="flex justify-center py-16">
+    <div className="w-6 h-6 border-2 border-[#444] border-t-white rounded-full animate-spin" />
+  </div>
+) : selectedPost ? (
+  <ThreadDetail
+    post={selectedPost}
+    onBack={() => setSelectedPost(null)}
+    isLoggedIn={isLoggedIn}
+    onLoginRequired={() => navigate("/login")}
+  />
+) : posts.length === 0 ? (
+  <div className="py-16 text-center text-[#666]">
+    Belum ada postingan.
+  </div>
+) : (
+  posts.map((post) => (
+    <PostCard
+      key={post.id}
+      post={post}
+      token={token}
+      isLoggedIn={isLoggedIn}
+      onLoginRequired={() => navigate("/login")}
+      onCommentClick={() => handleOpenPost(post.id)}
+    />
+  ))
+)}
             </div>
           </div>
 

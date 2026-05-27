@@ -88,8 +88,8 @@ export default function ThreadDetail({
   }
 
   return (
-    <div className="min-h-screen bg-[#101010] text-white">
-      <div className="sticky top-0 z-50 bg-[#101010]/90 backdrop-blur-md border-b border-[#1e1e1e] px-4 py-3 flex items-center gap-4">
+    <div className="min-h-screen bg-[#1E1E1E] text-white">
+      <div className="sticky top-0 z-50 bg-[#1E1E1E]/90 backdrop-blur-md border-b border-[#1e1e1e] px-4 py-3 flex items-center gap-4">
         <button
           onClick={onBack}
           className="p-1 rounded-full hover:bg-[#1a1a1a] transition-colors"
@@ -99,7 +99,7 @@ export default function ThreadDetail({
         <span className="font-bold text-lg">Thread</span>
       </div>
 
-      <div className="p-4 border-b border-[#1e1e1e]">
+      <div className="px-4 py-4 border-b border-[#2a2a2a]">
         <div className="flex gap-3">
           <div className="w-9 h-9 rounded-full bg-zinc-700 flex-shrink-0 flex items-center justify-center text-sm font-bold">
             {post.user.name ? post.user.name[0].toUpperCase() : "U"}
@@ -169,7 +169,7 @@ export default function ThreadDetail({
         </div>
       )}
 
-      <div className="divide-y divide-[#1e1e1e]">
+      <div className="divide-y divide-[#2a2a2a]">
         {comments.length === 0 ? (
           <div className="p-8 text-center text-sm text-[#555]">
             Belum ada komentar.
