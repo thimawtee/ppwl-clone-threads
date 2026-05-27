@@ -87,14 +87,28 @@ export default function HomeLoggedInPage() {
 
     fetchPosts();
   }, [BACKEND_URL, token]);
-
-  if (selectedPost) {
+  
+if (selectedPost) {
   return (
     <ThreadDetail
       post={selectedPost}
-      onBack={() => setSelectedPost(null)}
+      isOpen={!!selectedPost}
+      onClose={() => setSelectedPost(null)}
+      token={token}
+      currentUser={
+        user
+          ? {
+              id: user.id,
+              name: user.name,
+              username: user.username,
+              avatarUrl: user.avatarUrl ?? null,
+            }
+          : null
+      }
       isLoggedIn={true}
       onLoginRequired={() => {}}
+      onEditPost={() => {}}
+      onDeletePost={() => {}}
     />
   );
 }
