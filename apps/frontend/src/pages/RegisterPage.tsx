@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../services/api";
 import logoThreads from "../assets/images/logo-threads-no-login-no-text.png";
+import { toast } from "sonner";
 
 function ThreadsLogo() {
   return (
@@ -137,7 +138,8 @@ export default function RegisterPage() {
         );
       }
 
-      navigate("/login");
+      toast.success("Akun berhasil dibuat!, Silakan login dengan email dan password yang sudah didaftarkan.");
+      navigate("/login");  
     } catch (err: any) {
       setError(
         err.response?.data?.message ||
