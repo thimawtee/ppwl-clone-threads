@@ -321,7 +321,7 @@ async function handleOpenPost(postId: string) {
 />
 
       {selectedPost ? (
-  <main className="flex-1 min-w-0 lg:max-w-[660px] lg:ml-18 min-h-screen px-3 md:px-4 pt-20 md:pt-6 pb-24 bg-[#101010]">
+  <main className="flex-1 min-w-0 lg:max-w-[660px] lg:ml-[260px] min-h-screen px-3 md:px-4 pt-20 md:pt-6 pb-24 bg-[#101010]">
     <div className="w-full max-w-[620px]">
       <div className="hidden lg:flex px-4 md:px-6 py-4 items-center gap-4">
         <button
@@ -379,7 +379,7 @@ async function handleOpenPost(postId: string) {
   </main>
 ) : (
 
-      <main className="flex-1 min-w-0 max-w-[660px] lg:ml-18 min-h-screen px-3 md:px-4 pt-[56px] lg:pt-6 pb-24 bg-[#101010]">
+      <main className="flex-1 min-w-0 max-w-[660px] lg:ml-[260px] min-h-screen px-3 md:px-4 pt-[56px] lg:pt-6 pb-24 bg-[#101010]">
         <div className="hidden lg:block">
   <div className="pt-4 pb-6 px-6 flex items-center gap-4">
     <h1 className="text-[32px] font-bold tracking-tight">
