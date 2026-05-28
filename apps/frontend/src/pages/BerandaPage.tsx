@@ -350,6 +350,8 @@ function PostCard({
 // ─── Login Card ────────────────────────────────────────────────────────
 
 function LoginCard({ onLogin }: { onLogin: () => void }) {
+  const navigate = useNavigate();
+
   return (
     <div className="flex flex-col gap-4">
       <div
@@ -365,7 +367,7 @@ function LoginCard({ onLogin }: { onLogin: () => void }) {
         </p>
 
         <button
-          onClick={onLogin}
+          onClick={() => navigate("/login")}
           className="
             w-full
             flex
@@ -997,7 +999,7 @@ export default function BerandaPage() {
     <div className="bg-[#101010] text-white">
       {/* Mobile Header */}
       <MobileHeader
-        onLogin={handleRequireLogin}
+        onLogin={() => navigate("/login")}
         isDetail={!!selectedPost}
         onBack={() => setSelectedPost(null)}
       />
