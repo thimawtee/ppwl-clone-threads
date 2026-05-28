@@ -326,6 +326,22 @@ async function handleDeletePost() {
     setEditOpen(true);
   }}
   onDeletePost={handleDeletePost}
+  onRefreshPost={(updatedPost) => {
+    if (!post || !updatedPost) return;
+
+    setPost({
+      ...post,
+      ...updatedPost,
+    });
+
+    if (updatedPost.likeCount !== undefined) {
+      setLikeCount(updatedPost.likeCount);
+    }
+
+    if (updatedPost.isLiked !== undefined) {
+      setLiked(updatedPost.isLiked);
+    }
+  }}
 />
 
       <div className="min-h-screen bg-[#101010] text-white">

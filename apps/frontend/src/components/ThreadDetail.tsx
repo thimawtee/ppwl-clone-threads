@@ -48,6 +48,8 @@ interface Props {
   onLoginRequired: () => void;
   onEditPost: () => void;
   onDeletePost: () => void;
+  onRefreshPost: (updatedPost?: Partial<Post>) => void;
+  
 }
 
 // ─── Helper ─────────────────────────────────────
@@ -74,14 +76,14 @@ export default function ThreadDetail({
   onLoginRequired,
   onEditPost,
   onDeletePost,
+  onRefreshPost,
 }: Props) {
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [liked, setLiked] = useState(post?.isLiked || false);
-  const [likeCount, setLikeCount] = useState(post?.likeCount || 0);
-
   const comments = post?.comments || [];
+  const liked = post?.isLiked ?? false;
+const likeCount = post?.likeCount ?? 0;
 
   // ─── Close menu when click outside ─────────────────────
 
@@ -105,7 +107,7 @@ export default function ThreadDetail({
     if (!isOpen) {
       setText("");
     }
-  }, [isOpen]);
+  }, [isOpen]); 
 
   if (!isOpen || !post) return null;
 
@@ -146,9 +148,17 @@ export default function ThreadDetail({
 
       toast.success("Komentar berhasil dibuat");
 
-      setText("");
+const newComment = data.data || data.comment || data.result;
 
-      setText("");
+setText("");
+
+onRefreshPost({
+  id: post.id,
+  commentCount: post.commentCount + 1,
+  comments: newComment
+    ? [...(post.comments || []), newComment]
+    : post.comments,
+});
     } catch (error: any) {
       toast.error(error.message || "Gagal membuat komentar");
     } finally {
@@ -178,8 +188,11 @@ export default function ThreadDetail({
         throw new Error(data.message);
       }
 
-      setLiked(data.liked);
-      setLikeCount(data.likeCount);
+      onRefreshPost({
+  id: post.id,
+  isLiked: data.liked,
+  likeCount: data.likeCount,
+});
     } catch (error: any) {
       toast.error(error.message || "Gagal memberikan like");
     }

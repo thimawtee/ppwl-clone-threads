@@ -158,9 +158,9 @@ function PostCard({
         hover:bg-white/[0.02]
       "
     >
-      <div className="flex gap-3">
+      <div className="flex gap-3 items-start">
         {/* Avatar */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 w-10 h-10">
           <Avatar user={post.user} size={36} />
         </div>
 
