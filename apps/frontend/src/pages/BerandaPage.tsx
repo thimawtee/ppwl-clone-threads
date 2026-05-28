@@ -3,9 +3,9 @@ import { ArrowLeft } from "lucide-react";
 import logoThreads from "../assets/images/logo-threads-no-login-no-text.png";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../services/api";
-import ThreadDetail from "../components/ThreadDetail";
 import { useAuthStore } from "../stores/auth.store";
 import { toast } from "sonner";
+import logoInstagram from "../assets/images/logo-Instagram.png";
 
 import {
   Heart,
@@ -14,6 +14,7 @@ import {
   Home,
   Plus,
   User,
+  SquarePen,
 } from "lucide-react";
 
 // ─── Types ─────────────────────────────────────────────────────────────
@@ -115,7 +116,9 @@ function PostCard({
 
   const navigate = useNavigate();
 
-  async function handleLike() {
+  async function handleLike(e?: React.MouseEvent) {
+    e?.stopPropagation();
+
     if (!isLoggedIn || !token) {
       onLoginRequired();
       return;
@@ -149,7 +152,7 @@ function PostCard({
         px-4
         py-4
         border-b
-        border-[#2a2a2a]
+        border-[#2D2D2D]
         cursor-pointer
         transition-colors
         hover:bg-white/[0.02]
@@ -177,7 +180,7 @@ function PostCard({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                navigate("/login");
+                onLoginRequired();
               }}
               className="text-[#777] hover:text-white transition-colors"
             >
@@ -203,7 +206,7 @@ function PostCard({
                     rounded-2xl
                     overflow-hidden
                     border
-                    border-[#2a2a2a]
+                    border-[#2D2D2D]
                     bg-black
                     w-fit
                     max-w-[260px]
@@ -350,7 +353,7 @@ function LoginCard({ onLogin }: { onLogin: () => void }) {
   return (
     <div className="flex flex-col gap-4">
       <div
-        className="rounded-2xl border border-[#2a2a2a] p-6 text-center"
+        className="rounded-2xl border border-[#2D2D2D] p-6 text-center"
         style={{ background: "#1E1E1E" }}
       >
         <h2 className="text-white font-bold text-[18px] leading-tight mb-2">
@@ -430,11 +433,321 @@ function LoginCard({ onLogin }: { onLogin: () => void }) {
   );
 }
 
+// ─── Login Popup ───────────────────────────────────────────────────────
+
+function LoginPopup({
+  open,
+  onClose,
+  onLogin,
+  variant = "default",
+}: {
+  open: boolean;
+  onClose: () => void;
+  onLogin: () => void;
+  variant?: "default" | "create";
+}) {
+  if (!open) return null;
+  const isCreateVariant = variant === "create";
+
+  return (
+    <div
+      onClick={onClose}
+      className="
+        fixed
+        inset-0
+        z-[9999]
+        bg-black/72
+      "
+    >
+      {/* DESKTOP */}
+      <div
+        className="
+          hidden
+          lg:flex
+          items-center
+          justify-center
+          w-full
+          h-full
+          p-4
+        "
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="
+            w-full
+            max-w-[560px]
+            rounded-[16px]
+            border
+            border-[#101010]
+            bg-[#101010]
+            px-14
+            py-14
+            shadow-2xl
+          "
+        >
+          {/* CREATE ICON */}
+          {isCreateVariant && (
+            <div className="flex justify-center mb-5">
+              <div
+                className="
+        w-14
+        h-14
+        rounded-2xl
+        bg-gradient-to-br
+        from-[#FF7A00]
+        via-[#FF0069]
+        to-[#A033FF]
+        flex
+        items-center
+        justify-center
+      "
+              >
+                <SquarePen size={28} className="text-white" strokeWidth={2.2} />
+              </div>
+            </div>
+          )}
+
+          {/* TITLE */}
+          <h2
+            className="
+    text-white
+    font-black
+    text-[32px]
+    leading-[1.05]
+    tracking-[-0.03em]
+    text-center
+    mb-3
+  "
+          >
+            {isCreateVariant ? "Sign up to post" : "Say more with Threads"}
+          </h2>
+
+          <p className="text-[#9A9A9A] text-[15px] leading-6 mb-7 text-center">
+            {isCreateVariant ? (
+              <>
+                Join Threads to share ideas, ask questions,
+                <br />
+                post random thoughts and more.
+              </>
+            ) : (
+              <>
+                Join Threads to share thoughts, find out what's
+                <br />
+                going on, follow your people and more.
+              </>
+            )}
+          </p>
+
+          {/* LOGIN BUTTON */}
+          <button
+            onClick={onLogin}
+            className="
+              w-full
+              flex
+              items-center
+              justify-between
+              rounded-2xl
+              bg-[#101010]
+              border
+              border-[#2D2D2D]
+              px-5
+              py-4
+              hover:bg-[#181818]
+              transition-all
+              duration-200
+            "
+          >
+            <div className="flex items-center gap-4">
+              <div
+                className="
+                  w-12
+                  h-12
+                  rounded-2xl
+                  flex
+                  items-center
+                  justify-center
+                  overflow-hidden
+                  flex-shrink-0
+                "
+              >
+                <img
+                  src={logoInstagram}
+                  alt="Instagram"
+                  className="w-9 h-9 object-contain"
+                />
+              </div>
+
+              <span className="text-[#9A9A9A] text-[15px]">
+                Continue with Instagram
+              </span>
+            </div>
+
+            <span className="text-[#7A7A7A] text-[24px] leading-none">›</span>
+          </button>
+        </div>
+      </div>
+
+      {/* MOBILE */}
+      <div
+        className="
+          lg:hidden
+          fixed
+          bottom-0
+          left-0
+          right-0
+          animate-[slideUp_.25s_ease]
+        "
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="
+            rounded-t-[24px]
+            border-t
+            border-x
+            border-[#2A2A2A]
+            bg-[#0B0B0B]
+            px-5
+            pt-5
+            pb-7
+            shadow-2xl
+          "
+        >
+          {/* CLOSE */}
+          <button
+            onClick={onClose}
+            className="
+              mb-5
+              text-[#8A8A8A]
+              hover:text-white
+              transition-colors
+            "
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6L6 18" />
+              <path d="M6 6L18 18" />
+            </svg>
+          </button>
+
+          {/* CREATE ICON */}
+          {isCreateVariant && (
+            <div className="flex justify-center mb-5">
+              <div
+                className="
+        w-12
+        h-12
+        rounded-2xl
+        bg-gradient-to-br
+        from-[#FF7A00]
+        via-[#FF0069]
+        to-[#A033FF]
+        flex
+        items-center
+        justify-center
+      "
+              >
+                <SquarePen size={22} className="text-white" strokeWidth={2.2} />
+              </div>
+            </div>
+          )}
+
+          {/* TITLE */}
+          <h2
+            className="
+    text-white
+    font-black
+    text-[20px]
+    leading-tight
+    tracking-[-0.02em]
+    mb-3
+    text-center
+  "
+          >
+            {isCreateVariant ? "Sign up to post" : "Say more with Threads"}
+          </h2>
+
+          {/* DESC */}
+          <p className="text-[#8F8F8F] text-[15px] leading-6 mb-7 text-center">
+            {isCreateVariant ? (
+              <>
+                Join Threads to share ideas, ask questions, post random thoughts
+                and more.
+              </>
+            ) : (
+              <>
+                Join Threads to share thoughts, find out what's going on, follow
+                your people and more.
+              </>
+            )}
+          </p>
+
+          {/* LOGIN BUTTON */}
+          <button
+            onClick={onLogin}
+            className="
+              w-full
+              flex
+              items-center
+              justify-between
+              rounded-[22px]
+              border
+              border-[#2B2B2B]
+              bg-[#0B0B0B]
+              px-4
+              py-4
+            "
+          >
+            <div className="flex items-center gap-4">
+              <img
+                src={logoInstagram}
+                alt="Instagram"
+                className="w-12 h-12 object-contain flex-shrink-0"
+              />
+
+              <div className="flex flex-col items-start">
+                <span className="text-[#7F7F7F] text-[14px] leading-none mb-1">
+                  Continue with Instagram
+                </span>
+              </div>
+            </div>
+
+            <span className="text-[#7A7A7A] text-[24px] leading-none">›</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Desktop Sidebar ───────────────────────────────────────────────────
 
 function DesktopSidebar({ onNav }: { onNav: (page: string) => void }) {
   return (
-    <aside className="hidden lg:flex flex-col w-[88px] sticky top-0 h-screen bg-[#101010]">
+    <aside
+      className="
+        hidden
+        lg:flex
+        flex-col
+
+        fixed
+        left-0.5
+        top-0
+
+        w-[88px]
+        h-screen
+
+        bg-[#101010]
+      "
+    >
       <div className="pl-5 pt-6 pb-8">
         <img
           src={logoThreads}
@@ -607,6 +920,10 @@ function MobileBottomNav({ onNav }: { onNav: (page: string) => void }) {
 // ─── Main Page ─────────────────────────────────────────────────────────
 
 export default function BerandaPage() {
+  const [loginPopupOpen, setLoginPopupOpen] = useState(false);
+  const [popupVariant, setPopupVariant] = useState<"default" | "create">(
+    "default",
+  );
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -658,6 +975,21 @@ export default function BerandaPage() {
   function handleNav(page: string) {
     if (page === "home") return;
 
+    if (!isLoggedIn) {
+      setPopupVariant(page === "create" ? "create" : "default");
+      setLoginPopupOpen(true);
+      return;
+    }
+
+    navigate("/login");
+  }
+
+  function handleRequireLogin() {
+    if (!isLoggedIn) {
+      setLoginPopupOpen(true);
+      return;
+    }
+
     navigate("/login");
   }
 
@@ -665,7 +997,7 @@ export default function BerandaPage() {
     <div className="bg-[#101010] text-white">
       {/* Mobile Header */}
       <MobileHeader
-        onLogin={() => navigate("/login")}
+        onLogin={handleRequireLogin}
         isDetail={!!selectedPost}
         onBack={() => setSelectedPost(null)}
       />
@@ -675,7 +1007,7 @@ export default function BerandaPage() {
         <DesktopSidebar onNav={handleNav} />
 
         {/* Main */}
-        <main className="flex-1 min-w-0 lg:max-w-[660px] pt-[56px] lg:pt-0">
+        <main className="flex-1 min-w-0 lg:max-w-[660px] pt-[56px] lg:pt-0 lg:ml-[110px]">
           {/* Desktop Header */}
           <div
             className="
@@ -702,7 +1034,7 @@ export default function BerandaPage() {
         h-8
         rounded-full
         border
-        border-[#2a2a2a]
+        border-[#2D2D2D]
          bg-[#181818]
         flex
         items-center
@@ -731,7 +1063,7 @@ export default function BerandaPage() {
               lg:rounded-t-3xl
               lg:rounded-b-none
               border
-              border-[#2a2a2a]
+              border-[#2D2D2D]
               bg-[#101010]
               lg:bg-[#1E1E1E]
             "
@@ -753,7 +1085,7 @@ export default function BerandaPage() {
                     post={selectedPost}
                     token={token}
                     isLoggedIn={isLoggedIn}
-                    onLoginRequired={() => navigate("/login")}
+                    onLoginRequired={handleRequireLogin}
                     onCommentClick={() => {}}
                   />
 
@@ -799,6 +1131,43 @@ export default function BerandaPage() {
                       </div>
                     )}
                   </div>
+                  {/* LOGIN TO SEE MORE REPLIES */}
+                  <div className="px-4 py-5">
+                    <div
+                      className="
+      flex
+      items-center
+      justify-between
+      gap-4
+      rounded-2xl
+      bg-[#101010]
+      px-4
+      py-4
+    "
+                    >
+                      <span className="text-[15px] font-bold text-white">
+                        Log in to see more replies.
+                      </span>
+
+                      <button
+                        onClick={() => navigate("/login")}
+                        className="
+        px-4
+        py-2
+        rounded-xl
+        bg-[#101010]
+        text-white
+        text-sm
+        font-semibold
+        hover:bg-[#181818]
+        transition
+        border border-[#323333]
+      "
+                      >
+                        Log in
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ) : loading ? (
                 <div className="flex justify-center py-16">
@@ -815,7 +1184,7 @@ export default function BerandaPage() {
                     post={post}
                     token={token}
                     isLoggedIn={isLoggedIn}
-                    onLoginRequired={() => navigate("/login")}
+                    onLoginRequired={handleRequireLogin}
                     onCommentClick={() => handleOpenPost(post.id)}
                   />
                 ))
@@ -835,18 +1204,24 @@ export default function BerandaPage() {
             w-[340px]
             flex-shrink-0
             pt-[56px]
-            px-5
+            px-3
             sticky
             top-0
             h-screen
           "
         >
-          <LoginCard onLogin={() => navigate("/login")} />
+          <LoginCard onLogin={handleRequireLogin} />
         </aside>
       </div>
 
       {/* Mobile Bottom Nav */}
       <MobileBottomNav onNav={handleNav} />
+      <LoginPopup
+        open={loginPopupOpen}
+        variant={popupVariant}
+        onClose={() => setLoginPopupOpen(false)}
+        onLogin={() => navigate("/login")}
+      />
     </div>
   );
 }
