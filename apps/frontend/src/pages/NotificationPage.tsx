@@ -204,46 +204,80 @@ export default function NotificationPage() {
     <div className="h-screen overflow-hidden bg-[#101010] text-white flex">
       <LoggedInSidebar onCreateThread={openCreateModal} />
 
-      <main className="flex-1 flex flex-col h-screen relative pt-[56px] lg:pt-0 pb-[64px] overflow-hidden">
+      <main className="flex-1 flex flex-col h-screen relative pt-[56px] lg:pt-0 pb-[64px] overflow-hidden lg:ml-[260px]">
         {/* Mobile Header */}
         <div className="lg:hidden flex items-center justify-center pt-3 pb-2">
-  <h1 className="text-[22px] font-bold text-white">
-    Activity
-  </h1>
-</div>
+          <h1 className="text-[22px] font-bold text-white">Activity</h1>
+        </div>
 
         {/* Desktop Header */}
-        <div className="hidden lg:sticky lg:top-0 lg:z-40 lg:flex bg-[#101010]/95 backdrop-blur-md">
-          <div className="flex items-center justify-center px-5 h-[60px] max-w-[640px] mx-auto w-full">
-            <h1 className="text-[15px] font-bold text-white">Activity</h1>
+        <div
+          className="
+    hidden
+    lg:flex
+    lg:sticky
+    lg:top-0
+    lg:z-30
+
+    bg-[#101010]/80
+    backdrop-blur-xl
+
+    border-b
+    border-white/[0.03]
+  "
+        >
+          <div
+            className="
+      w-full
+      max-w-[640px]
+      mx-auto
+
+      h-[64px]
+
+      flex
+      items-center
+
+      px-2
+    "
+          >
+            <h1
+              className="
+        text-[32px]
+        font-bold
+        tracking-tight
+        text-white
+      "
+            >
+              Activity
+            </h1>
           </div>
         </div>
 
         <div className="flex-1 flex justify-center px-4 pt-2 overflow-hidden">
-  <div className="w-full max-w-[640px] h-full overflow-hidden">
-    {loading ? (
-      <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-full">
-        <Loader2 size={28} className="animate-spin text-[#555]" />
-      </div>
-    ) : notifications.length === 0 ? (
-      <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-full">
-        <p className="text-[#555] text-[15px] italic">
-          No activity yet.
-        </p>
-      </div>
-    ) : (
-      <div className="bg-[#181818] rounded-2xl h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        {notifications.map((n) => (
-          <NotifItem
-            key={n.id}
-            notif={n}
-            onOpenPost={(postId) => navigate(`/post/${postId}`)}
-          />
-        ))}
-      </div>
-    )}
-  </div>
-</div>
+          <div className="w-full max-w-[640px] h-full overflow-hidden">
+            {loading ? (
+              <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-full">
+                <Loader2 size={28} className="animate-spin text-[#555]" />
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-full">
+                <p className="text-[#555] text-[15px] italic">
+                  No activity yet.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-[#181818] rounded-2xl h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                {notifications.map((n) => (
+                  <NotifItem
+                    key={n.id}
+                    notif={n}
+                    onOpenPost={(postId) => navigate(`/post/${postId}`)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
 
         <div className="hidden lg:block">
           <FloatingCreateButton onClick={openCreateModal} />
