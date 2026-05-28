@@ -7,6 +7,7 @@ import { useAuthStore } from "../stores/auth.store";
 import LoggedInSidebar from "../components/loggedin/LoggedInSidebar";
 import FloatingCreateButton from "@/components/loggedin/FloatingCreateButton";
 import CreatePostModal from "@/components/CreatePostModal";
+import ThreadDetail from "@/components/ThreadDetail";
 
 interface NotifActor {
   id: string;
@@ -54,13 +55,20 @@ function Avatar({
   size?: number;
 }) {
   const colors = [
-    "bg-violet-600",
-    "bg-blue-600",
-    "bg-emerald-600",
-    "bg-amber-600",
-    "bg-rose-600",
+  "bg-violet-600",
+  "bg-blue-600",
+  "bg-emerald-600",
+  "bg-amber-600",
+  "bg-rose-600",
+  "bg-cyan-600",
+  "bg-pink-600",
+  "bg-indigo-600",
+];
+  const c =
+  colors[
+    (user.id || "default").charCodeAt(0) %
+      colors.length
   ];
-  const c = colors[user.id.charCodeAt(0) % colors.length];
   return (
     <div
       className="relative flex-shrink-0 rounded-full overflow-hidden"
@@ -148,6 +156,7 @@ function NotifItem({
 export default function NotificationPage() {
   const navigate = useNavigate();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -185,6 +194,26 @@ export default function NotificationPage() {
     })();
   }, [token, API]);
 
+  async function handleOpenPost(postId: string) {
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API}/posts/${postId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setSelectedPost(data.data);
+    }
+  } catch {
+    toast.error("Gagal membuka thread.");
+  }
+}
+
   useEffect(() => {
     if (currentUser && token) {
       const shown = localStorage.getItem("threads_welcome_shown");
@@ -201,93 +230,147 @@ export default function NotificationPage() {
   }, [currentUser, token]);
 
   return (
-    <div className="h-screen overflow-hidden bg-[#101010] text-white flex">
-      <LoggedInSidebar onCreateThread={openCreateModal} />
+    <div className="min-h-screen bg-[#101010] text-white">
+  <div className="flex max-w-[1280px] mx-auto min-h-screen">
+      <LoggedInSidebar
+  onCreateThread={openCreateModal}
+/>
 
-      <main className="flex-1 flex flex-col h-screen relative pt-[56px] lg:pt-0 pb-[64px] overflow-hidden lg:ml-[260px]">
-        {/* Mobile Header */}
-        <div className="lg:hidden flex items-center justify-center pt-3 pb-2">
-          <h1 className="text-[22px] font-bold text-white">Activity</h1>
-        </div>
+      <main
+  className={`
+    flex-1
+    min-w-0
+    lg:max-w-[660px]
+    lg:ml-[290px]
+    ${selectedPost ? "pt-0" : "pt-[56px]"}
+    lg:pt-0
+    pb-[64px]
+    overflow-hidden
+  `}
+>
 
         {/* Desktop Header */}
-        <div
-          className="
+        {/* Desktop Header */}
+<div
+  className="
     hidden
     lg:flex
-    lg:sticky
-    lg:top-0
-    lg:z-30
-
-    bg-[#101010]/80
-    backdrop-blur-xl
-
-    border-b
-    border-white/[0.03]
+    w-full
+    max-w-[640px]
+    mx-auto
+    h-[64px]
+    items-center
+    gap-4
+    px-2
   "
-        >
-          <div
-            className="
-      w-full
-      max-w-[640px]
-      mx-auto
-
-      h-[64px]
-
-      flex
-      items-center
-
-      px-2
-    "
-          >
-            <h1
-              className="
-        text-[32px]
-        font-bold
-        tracking-tight
+>
+  {selectedPost && (
+    <button
+      onClick={() => setSelectedPost(null)}
+      className="
+        w-9
+        h-9
+        rounded-full
+        bg-[#181818]
+        flex
+        items-center
+        justify-center
         text-white
+        hover:bg-[#222]
+        transition
       "
-            >
-              Activity
-            </h1>
-          </div>
-        </div>
+    >
+      ←
+    </button>
+  )}
 
-        <div className="flex-1 flex justify-center px-4 pt-2 overflow-hidden">
-          <div className="w-full max-w-[640px] h-full overflow-hidden">
-            {loading ? (
-              <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-full">
-                <Loader2 size={28} className="animate-spin text-[#555]" />
-              </div>
-            ) : notifications.length === 0 ? (
-              <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-full">
-                <p className="text-[#555] text-[15px] italic">
-                  No activity yet.
-                </p>
-              </div>
-            ) : (
-              <div className="bg-[#181818] rounded-2xl h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                {notifications.map((n) => (
-                  <NotifItem
-                    key={n.id}
-                    notif={n}
-                    onOpenPost={(postId) => navigate(`/post/${postId}`)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+  <h1 className="text-[20px] font-medium tracking-tight">
+    {selectedPost ? "Thread" : "Activity"}
+  </h1>
+</div>
+
+        <div className="w-full px-0 pt-2 overflow-hidden">
+  <div className="w-full h-full overflow-hidden">
+  {selectedPost ? (
+    <div
+  className="
+    bg-[#101010]
+    lg:bg-[#181818]
+    lg:rounded-2xl
+    h-full
+    pt-[56px]
+    lg:pt-0
+    overflow-y-auto
+    [scrollbar-width:none]
+    [-ms-overflow-style:none]
+    [&::-webkit-scrollbar]:hidden
+  "
+> 
+      <ThreadDetail
+        post={selectedPost}
+        isOpen={true}
+        onClose={() => setSelectedPost(null)}
+        token={token}
+        currentUser={
+          currentUser
+            ? {
+                id: currentUser.id,
+                name: currentUser.name,
+                username: currentUser.username,
+                avatarUrl: currentUser.avatarUrl ?? null,
+              }
+            : null
+        }
+        isLoggedIn={true}
+        onLoginRequired={() => navigate("/login")}
+        onEditPost={() => {}}
+        onDeletePost={() => {}}
+        onRefreshPost={(updatedPost) => {
+          if (!updatedPost?.id) return;
+
+          setSelectedPost((prev: any) =>
+            prev && prev.id === updatedPost.id
+              ? { ...prev, ...updatedPost }
+              : prev
+          );
+        }}
+      />
+    </div>
+  ) : loading ? (
+    <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-full">
+      <Loader2 size={28} className="animate-spin text-[#555]" />
+    </div>
+  ) : notifications.length === 0 ? (
+    <div className="bg-[#181818] rounded-2xl flex items-center justify-center h-full">
+      <p className="text-[#555] text-[15px] italic">
+        No activity yet.
+      </p>
+    </div>
+  ) : (
+    <div className="bg-[#101010] lg:bg-[#181818] lg:rounded-2xl h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+      {notifications.map((n) => (
+        <NotifItem
+          key={n.id}
+          notif={n}
+          onOpenPost={handleOpenPost}
+        />
+      ))}
+    </div>
+  )}
+</div>
+</div>
 
         <div className="hidden lg:block">
           <FloatingCreateButton onClick={openCreateModal} />
         </div>
+        
       </main>
 
       <CreatePostModal
         open={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
       />
+    </div>
     </div>
   );
 }

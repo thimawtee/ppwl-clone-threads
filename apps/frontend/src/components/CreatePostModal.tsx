@@ -12,6 +12,21 @@ interface Props {
   onClose: () => void;
 }
 
+function getAvatarColor(userId: string) {
+  const colors = [
+    "bg-violet-600",
+    "bg-blue-600",
+    "bg-emerald-600",
+    "bg-amber-600",
+    "bg-rose-600",
+    "bg-cyan-600",
+    "bg-pink-600",
+    "bg-indigo-600",
+  ];
+
+  return colors[userId.charCodeAt(0) % colors.length];
+}
+
 export default function CreatePostModal({ open, onClose }: Props) {
   const [content, setContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -207,7 +222,19 @@ export default function CreatePostModal({ open, onClose }: Props) {
             >
               <div className="flex gap-3 items-start">
                 {/* Avatar */}
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-green-400 overflow-hidden shrink-0 flex items-center justify-center">
+                <div
+  className={`
+    w-11
+    h-11
+    rounded-full
+    overflow-hidden
+    shrink-0
+    flex
+    items-center
+    justify-center
+    ${getAvatarColor(user?.id || "default")}
+  `}
+>
                   {user?.avatarUrl ? (
                     <img
                       src={user.avatarUrl}
@@ -392,7 +419,19 @@ export default function CreatePostModal({ open, onClose }: Props) {
             <div className="flex gap-3">
               {/* LEFT */}
               <div className="flex flex-col items-center">
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-blue-400 to-green-400 shrink-0">
+                <div
+  className={`
+    w-10
+    h-10
+    rounded-full
+    overflow-hidden
+    shrink-0
+    flex
+    items-center
+    justify-center
+    ${getAvatarColor(user?.id || "default")}
+  `}
+>
                   {user?.avatarUrl ? (
                     <img
                       src={user.avatarUrl}

@@ -34,6 +34,21 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 3600)}h`;
 }
 
+function getAvatarColor(userId: string) {
+  const colors = [
+    "bg-violet-600",
+    "bg-blue-600",
+    "bg-emerald-600",
+    "bg-amber-600",
+    "bg-rose-600",
+    "bg-cyan-600",
+    "bg-pink-600",
+    "bg-indigo-600",
+  ];
+
+  return colors[userId.charCodeAt(0) % colors.length];
+}
+
 interface FeedPostProps {
   post: Post;
   onOpenPost?: () => void;
@@ -185,7 +200,11 @@ const likeCount = post.likeCount;
 
         {/* Avatar */}
         <div className="relative">
-          <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-400 to-green-300 flex items-center justify-center text-white font-bold">
+          <div
+  className={`w-10 h-10 rounded-full overflow-hidden ${getAvatarColor(
+    post.user.id
+  )} flex items-center justify-center text-white font-bold`}
+>
             {post.user.avatarUrl ? (
               <img
                 src={post.user.avatarUrl}

@@ -8,28 +8,36 @@ import DetailPostPage from "./pages/DetailPostPage";
 import ProfilePage from "./pages/ProfilePage";
 import { Toaster } from "sonner";
 import NotificationSystem from "./components/NotificationSystem";
+import { useAuthStore } from "@/stores/auth.store";
+
+function RootRedirect() {
+  const token = useAuthStore((state) => state.token);
+  const user = useAuthStore((state) => state.user);
+
+  if (token && user) {
+    return <Navigate to="/home" replace />;
+  }
+
+  return <BerandaPage />;
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <Toaster richColors position="top-right" />
       <NotificationSystem />
+
       <Routes>
-        <Route path="/" element={<BerandaPage />} />
+        <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/home" element={<HomeLoggedInPage />} />
         <Route path="/profile" element={<ProfilePage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-
         <Route path="/activity" element={<NotificationPage />} />
-
-        <Route path="/register" element={<RegisterPage />} />
-
         <Route path="/post/:id" element={<DetailPostPage />} />
 
-        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
-  )
+  );
 }

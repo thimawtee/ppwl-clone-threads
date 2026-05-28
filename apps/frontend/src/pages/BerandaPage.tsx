@@ -52,9 +52,7 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)}d`;
 }
 
-// ─── Avatar ────────────────────────────────────────────────────────────
-
-function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
+function getAvatarColor(userId: string) {
   const colors = [
     "bg-violet-600",
     "bg-blue-600",
@@ -66,7 +64,14 @@ function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
     "bg-indigo-600",
   ];
 
-  const color = colors[user.id.charCodeAt(0) % colors.length];
+  return colors[userId.charCodeAt(0) % colors.length];
+}
+
+// ─── Avatar ────────────────────────────────────────────────────────────
+
+function Avatar({ user, size = 36 }: { user: PostUser; size?: number }) {
+
+  const color = getAvatarColor(user.id);
 
   return (
     <div
@@ -113,8 +118,6 @@ function PostCard({
   const [likeCount, setLikeCount] = useState(post.likeCount);
 
   const [imageOpen, setImageOpen] = useState(false);
-
-  const navigate = useNavigate();
 
   async function handleLike(e?: React.MouseEvent) {
     e?.stopPropagation();
@@ -986,14 +989,15 @@ export default function BerandaPage() {
     navigate("/login");
   }
 
-  function handleRequireLogin() {
-    if (!isLoggedIn) {
-      setLoginPopupOpen(true);
-      return;
-    }
-
-    navigate("/login");
+  function handleRequireLogin(variant: "default" | "create" = "default") {
+  if (!isLoggedIn) {
+    setPopupVariant(variant);
+    setLoginPopupOpen(true);
+    return;
   }
+
+  navigate("/login");
+}
 
   return (
     <div className="bg-[#101010] text-white">
@@ -1097,17 +1101,31 @@ export default function BerandaPage() {
                       selectedPost.comments.map((comment) => (
                         <div key={comment.id} className="px-4 py-4 flex gap-3">
                           {/* Avatar */}
-                          <div className="w-9 h-9 rounded-full overflow-hidden bg-zinc-700 flex items-center justify-center text-white font-semibold flex-shrink-0">
-                            {comment.user.avatarUrl ? (
-                              <img
-                                src={comment.user.avatarUrl}
-                                alt={comment.user.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              comment.user.name?.charAt(0).toUpperCase()
-                            )}
-                          </div>
+                          <div
+  className={`
+    w-9
+    h-9
+    rounded-full
+    overflow-hidden
+    ${getAvatarColor(comment.user.id)}
+    flex
+    items-center
+    justify-center
+    text-white
+    font-semibold
+    flex-shrink-0
+  `}
+>
+  {comment.user.avatarUrl ? (
+    <img
+      src={comment.user.avatarUrl}
+      alt={comment.user.name}
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    comment.user.name?.charAt(0).toUpperCase()
+  )}
+</div>
 
                           {/* Comment */}
                           <div className="flex-1">
@@ -1132,43 +1150,6 @@ export default function BerandaPage() {
                         Belum ada komentar.
                       </div>
                     )}
-                  </div>
-                  {/* LOGIN TO SEE MORE REPLIES */}
-                  <div className="px-4 py-5">
-                    <div
-                      className="
-      flex
-      items-center
-      justify-between
-      gap-4
-      rounded-2xl
-      bg-[#101010]
-      px-4
-      py-4
-    "
-                    >
-                      <span className="text-[15px] font-bold text-white">
-                        Log in to see more replies.
-                      </span>
-
-                      <button
-                        onClick={() => navigate("/login")}
-                        className="
-        px-4
-        py-2
-        rounded-xl
-        bg-[#101010]
-        text-white
-        text-sm
-        font-semibold
-        hover:bg-[#181818]
-        transition
-        border border-[#323333]
-      "
-                      >
-                        Log in
-                      </button>
-                    </div>
                   </div>
                 </div>
               ) : loading ? (

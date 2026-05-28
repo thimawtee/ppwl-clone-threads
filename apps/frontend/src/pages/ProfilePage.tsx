@@ -8,7 +8,6 @@ import ThreadDetail from "@/components/ThreadDetail";
 import {
   BarChart3,
   Square as Instagram,
-  MoreHorizontal,
   SquarePen,
   Loader2,
 } from "lucide-react";
@@ -44,11 +43,31 @@ interface Post {
   content: string;
   imageUrl: string | null;
   createdAt: string;
-  user: { id: string };
+  user: {
+  id: string;
+  name: string;
+  username: string;
+  avatarUrl: string | null;
+};
   likeCount: number;
   commentCount: number;
   isLiked?: boolean;
   comments?: Comment[];
+}
+
+function getAvatarColor(userId: string) {
+  const colors = [
+    "bg-violet-600",
+    "bg-blue-600",
+    "bg-emerald-600",
+    "bg-amber-600",
+    "bg-rose-600",
+    "bg-cyan-600",
+    "bg-pink-600",
+    "bg-indigo-600",
+  ];
+
+  return colors[userId.charCodeAt(0) % colors.length];
 }
 
 export default function ProfilePage() {
@@ -192,13 +211,16 @@ async function handleOpenPost(postId: string) {
     const data = await res.json();
 
     if (data.success) {
-      const oldPost = userPosts.find((p) => p.id === postId);
 
       setSelectedPost({
-        ...data.data,
-        isLiked: data.data.isLiked ?? oldPost?.isLiked ?? false,
-        likeCount: data.data.likeCount ?? oldPost?.likeCount ?? 0,
-      });
+  ...data.data,
+  user: {
+    id: data.data.user.id,
+    name: data.data.user.name,
+    username: data.data.user.username,
+    avatarUrl: data.data.user.avatarUrl ?? null,
+  },
+});
     }
   } catch {
     toast.error("Gagal membuka thread.");
@@ -317,12 +339,11 @@ async function handleOpenPost(postId: string) {
   <div className="flex max-w-[1280px] mx-auto min-h-screen">
       <LoggedInSidebar
   onCreateThread={openCreateModal}
-  hideMobileHeader={!!selectedPost}
 />
 
       {selectedPost ? (
-  <main className="flex-1 min-w-0 lg:max-w-[660px] lg:ml-[260px] min-h-screen px-3 md:px-4 pt-20 md:pt-6 pb-24 bg-[#101010]">
-    <div className="w-full max-w-[620px]">
+  <main className="flex-1 min-w-0 lg:max-w-[660px] lg:ml-[290px] min-h-screen px-3 md:px-4 pt-20 md:pt-6 pb-24 bg-[#101010]">
+    <div className="w-full">
       <div className="hidden lg:flex px-4 md:px-6 py-4 items-center gap-4">
         <button
           onClick={() => setSelectedPost(null)}
@@ -331,7 +352,7 @@ async function handleOpenPost(postId: string) {
           ←
         </button>
 
-        <h1 className="text-[32px] font-bold tracking-tight">
+        <h1 className="text-[20px] font-medium tracking-tight">
           Thread
         </h1>
       </div>
@@ -379,10 +400,10 @@ async function handleOpenPost(postId: string) {
   </main>
 ) : (
 
-      <main className="flex-1 min-w-0 max-w-[660px] lg:ml-[260px] min-h-screen px-3 md:px-4 pt-[56px] lg:pt-6 pb-24 bg-[#101010]">
+      <main className="flex-1 min-w-0 lg:max-w-[660px] lg:ml-[290px] min-h-screen px-3 md:px-4 pt-[56px] lg:pt-6 pb-24 bg-[#101010]">
         <div className="hidden lg:block">
   <div className="pt-4 pb-6 px-6 flex items-center gap-4">
-    <h1 className="text-[32px] font-bold tracking-tight">
+    <h1 className="text-[20px] font-medium tracking-tight">
   {user?.username || "profile"}
 </h1>
   </div>
@@ -408,7 +429,18 @@ async function handleOpenPost(postId: string) {
               </div>
 
               <div className="flex flex-col items-end gap-3">
-                <div className="w-[72px] h-[72px] rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center">
+                <div
+  className={`
+    w-[72px]
+    h-[72px]
+    rounded-full
+    overflow-hidden
+    flex
+    items-center
+    justify-center
+    ${getAvatarColor(user?.id || "default")}
+  `}
+>
                   {userAvatar ? (
                     <img
                       src={userAvatar}
@@ -459,7 +491,19 @@ async function handleOpenPost(postId: string) {
           {/* Input buat thread baru */}
           <div className="px-4 md:px-6 py-4 flex items-center justify-between border-b border-[#1f1f1f]">
             <div className="flex items-center gap-3 flex-1">
-              <div className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-green-400 flex items-center justify-center shrink-0">
+              <div
+  className={`
+    w-9
+    h-9
+    rounded-full
+    overflow-hidden
+    flex
+    items-center
+    justify-center
+    shrink-0
+    ${getAvatarColor(user?.id || "default")}
+  `}
+>
                 {userAvatar ? (
                   <img
                     src={userAvatar}

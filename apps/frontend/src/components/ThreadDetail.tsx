@@ -2,14 +2,16 @@ import { useEffect, useState, useRef } from "react";
 import {
   ArrowLeft,
   Loader2,
-  MoreHorizontal,
   Heart,
   MessageCircle,
-  Send,
+  Menu,
+  MoreHorizontal,
 } from "lucide-react";
 
 import { API_URL } from "@/services/api";
 import { toast } from "sonner";
+import { useAuthStore } from "@/stores/auth.store";
+import ThreadsLogoNoText from "@/assets/images/logo-threads-no-login-no-text.png";
 
 // ─── Types ─────────────────────────────────────
 
@@ -64,6 +66,21 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(diff / 86400)}d`;
 }
 
+function getAvatarColor(userId: string) {
+  const colors = [
+    "bg-violet-600",
+    "bg-blue-600",
+    "bg-emerald-600",
+    "bg-amber-600",
+    "bg-rose-600",
+    "bg-cyan-600",
+    "bg-pink-600",
+    "bg-indigo-600",
+  ];
+
+  return colors[userId.charCodeAt(0) % colors.length];
+}
+
 // ─── Component ─────────────────────────────────────
 
 export default function ThreadDetail({
@@ -85,6 +102,8 @@ export default function ThreadDetail({
   const comments = post?.comments || [];
   const liked = post?.isLiked ?? false;
   const likeCount = post?.likeCount ?? 0;
+  const [logoutOpen, setLogoutOpen] = useState(false);
+const logout = useAuthStore((state) => state.logout);
 
   // ─── Close menu when click outside ─────────────────────
 
@@ -264,12 +283,73 @@ export default function ThreadDetail({
         </div>
 
         {/* CENTER */}
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <span className="text-[17px] font-semibold text-white">Thread</span>
-        </div>
+<div className="absolute left-1/2 -translate-x-1/2">
+  <img
+    src={ThreadsLogoNoText}
+    alt="Threads"
+    className="w-7 h-7 object-contain"
+  />
+</div>
 
-        {/* RIGHT SPACER */}
-        <div className="w-16" />
+        {/* RIGHT MENU */}
+<div className="w-16 flex justify-end relative">
+  <button
+    onClick={(e) => {
+      e.stopPropagation();
+      setLogoutOpen((prev) => !prev);
+    }}
+    className="
+      w-9
+      h-9
+      rounded-full
+      flex
+      items-center
+      justify-center
+      text-white
+      hover:bg-[#1a1a1a]
+      transition
+    "
+  >
+    <Menu size={22} />
+  </button>
+
+  {logoutOpen && (
+    <div
+      onClick={(e) => e.stopPropagation()}
+      className="
+        absolute
+        right-0
+        top-11
+        z-[100]
+        w-36
+        rounded-xl
+        border
+        border-[#262626]
+        bg-[#181818]
+        overflow-hidden
+        shadow-xl
+      "
+    >
+      <button
+        onClick={() => {
+          logout();
+          window.location.href = "/login";
+        }}
+        className="
+          w-full
+          text-left
+          px-4
+          py-3
+          text-sm
+          text-red-400
+          hover:bg-[#222]
+        "
+      >
+        Logout
+      </button>
+    </div>
+  )}
+</div>
       </div>
 
       {/* CONTENT */}
@@ -286,7 +366,11 @@ export default function ThreadDetail({
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-zinc-700 flex items-center justify-center font-semibold text-white">
+                <div
+  className={`w-full h-full ${getAvatarColor(
+    post.user.id
+  )} flex items-center justify-center font-semibold text-white`}
+>
                   {post.user.name?.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -485,22 +569,22 @@ md:max-w-[260px]
             >
               {/* AVATAR */}
               <div
-                className="
-          w-9
-          h-9
-          rounded-full
-          overflow-hidden
-          bg-zinc-800
-          flex
-          items-center
-          justify-center
-          text-sm
-          font-semibold
-          text-zinc-300
-          flex-shrink-0
-          self-start
-        "
-              >
+  className={`
+    w-9
+    h-9
+    rounded-full
+    overflow-hidden
+    ${currentUser ? getAvatarColor(currentUser.id) : "bg-zinc-800"}
+    flex
+    items-center
+    justify-center
+    text-sm
+    font-semibold
+    text-white
+    flex-shrink-0
+    self-start
+  `}
+>
                 {currentUser?.avatarUrl ? (
                   <img
                     src={currentUser.avatarUrl}
@@ -600,7 +684,22 @@ md:max-w-[260px]
             comments.map((comment) => (
               <div key={comment.id} className="px-4 py-4 flex gap-3">
                 {/* AVATAR */}
-                <div className="w-9 h-9 rounded-full overflow-hidden bg-zinc-800 flex-shrink-0 flex items-center justify-center text-sm font-semibold text-zinc-300">
+                <div
+  className={`
+    w-9
+    h-9
+    rounded-full
+    overflow-hidden
+    ${getAvatarColor(comment.user.id)}
+    flex-shrink-0
+    flex
+    items-center
+    justify-center
+    text-sm
+    font-semibold
+    text-white
+  `}
+>
                   {comment.user.avatarUrl ? (
                     <img
                       src={comment.user.avatarUrl}
