@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   ArrowLeft,
   Loader2,
   MoreHorizontal,
   Heart,
   MessageCircle,
+  Send,
 } from "lucide-react";
 
 import { API_URL } from "@/services/api";
@@ -49,7 +50,6 @@ interface Props {
   onEditPost: () => void;
   onDeletePost: () => void;
   onRefreshPost: (updatedPost?: Partial<Post>) => void;
-  
 }
 
 // ─── Helper ─────────────────────────────────────
@@ -81,9 +81,10 @@ export default function ThreadDetail({
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const comments = post?.comments || [];
   const liked = post?.isLiked ?? false;
-const likeCount = post?.likeCount ?? 0;
+  const likeCount = post?.likeCount ?? 0;
 
   // ─── Close menu when click outside ─────────────────────
 
@@ -107,7 +108,16 @@ const likeCount = post?.likeCount ?? 0;
     if (!isOpen) {
       setText("");
     }
-  }, [isOpen]); 
+  }, [isOpen]);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+  }, [text]);
 
   if (!isOpen || !post) return null;
 
@@ -148,17 +158,21 @@ const likeCount = post?.likeCount ?? 0;
 
       toast.success("Komentar berhasil dibuat");
 
-const newComment = data.data || data.comment || data.result;
+      const newComment = data.data || data.comment || data.result;
 
-setText("");
+      setText("");
 
-onRefreshPost({
-  id: post.id,
-  commentCount: post.commentCount + 1,
-  comments: newComment
-    ? [...(post.comments || []), newComment]
-    : post.comments,
-});
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
+
+      onRefreshPost({
+        id: post.id,
+        commentCount: post.commentCount + 1,
+        comments: newComment
+          ? [...(post.comments || []), newComment]
+          : post.comments,
+      });
     } catch (error: any) {
       toast.error(error.message || "Gagal membuat komentar");
     } finally {
@@ -189,10 +203,10 @@ onRefreshPost({
       }
 
       onRefreshPost({
-  id: post.id,
-  isLiked: data.liked,
-  likeCount: data.likeCount,
-});
+        id: post.id,
+        isLiked: data.liked,
+        likeCount: data.likeCount,
+      });
     } catch (error: any) {
       toast.error(error.message || "Gagal memberikan like");
     }
@@ -451,68 +465,116 @@ md:max-w-[260px]
 
         {/* REPLY INPUT */}
         {isLoggedIn ? (
-          <div className="border-b border-[#2a2a2a] px-4 py-4 flex gap-3">
-            {/* AVATAR */}
-            <div className="w-9 h-9 rounded-full overflow-hidden bg-zinc-800 flex items-center justify-center text-sm font-semibold text-zinc-300 flex-shrink-0">
-              {currentUser?.avatarUrl ? (
-                <img
-                  src={currentUser.avatarUrl}
-                  alt={currentUser.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                currentUser?.name?.charAt(0).toUpperCase() || "U"
-              )}
-            </div>
-
-            {/* INPUT */}
-            <div className="flex-1">
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder={`Reply to ${
-                  post.user.username || post.user.name
-                }...`}
-                rows={1}
-                className="
-      w-full
-      bg-[#1E1E1E]
-      rounded-full
-      px-4
-      py-3
-      outline-none
-      resize-none
-      text-[14px]
-      text-white
-      placeholder:text-[#777]
-      min-h-[48px]
-      max-h-[140px]
+          <div className="border-b border-[#2a2a2a] px-4 py-4">
+            <div
+              className="
+    w-full
+    flex
+    items-center
+    gap-3
+    bg-[#1E1E1E]
+    border
+    border-[#2a2a2a]
+    rounded-[30px]
+    px-3
+    py-2
+    min-h-[56px]
+    transition-all
+    duration-200
     "
-              />
-
-              <div className="flex justify-end mt-2">
-                <button
-                  onClick={handleSubmit}
-                  disabled={!text.trim() || submitting}
-                  className="
-        h-9
-        px-5
-        rounded-full
-        bg-white
-        text-black
-        text-sm
-        font-semibold
-        disabled:opacity-40
-        transition
-      "
-                >
-                  {submitting ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    "Reply"
-                  )}
-                </button>
+            >
+              {/* AVATAR */}
+              <div
+                className="
+          w-9
+          h-9
+          rounded-full
+          overflow-hidden
+          bg-zinc-800
+          flex
+          items-center
+          justify-center
+          text-sm
+          font-semibold
+          text-zinc-300
+          flex-shrink-0
+          self-start
+        "
+              >
+                {currentUser?.avatarUrl ? (
+                  <img
+                    src={currentUser.avatarUrl}
+                    alt={currentUser.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  currentUser?.name?.charAt(0).toUpperCase() || "U"
+                )}
               </div>
+
+              {/* TEXTAREA */}
+              <div
+                className="
+          flex-1
+          flex
+          items-center
+          min-h-[36px]
+          py-[6px]
+        "
+              >
+                <textarea
+                  ref={textareaRef}
+                  value={text}
+                  onChange={(e) => {
+                    setText(e.target.value);
+                  }}
+                  placeholder={`Reply to ${
+                    post.user.username || post.user.name
+                  }...`}
+                  rows={1}
+                  className="
+            w-full
+            bg-transparent
+            outline-none
+            resize-none
+            overflow-hidden
+            text-[14px]
+            text-white
+            placeholder:text-[#777]
+            leading-[22px]
+            min-h-[22px]
+            max-h-none
+          "
+                />
+              </div>
+
+              {/* SUBMIT */}
+              <button
+                onClick={handleSubmit}
+                disabled={!text.trim() || submitting}
+                className="
+          w-9
+          h-9
+          rounded-full
+          bg-white
+          text-black
+          flex
+          items-center
+          justify-center
+          flex-shrink-0
+          self-end
+          disabled:opacity-40
+          transition
+          hover:scale-[1.03]
+          active:scale-95
+        "
+              >
+                {submitting ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <ArrowLeft size={16} className="rotate-90" />
+                )}
+              </button>
             </div>
           </div>
         ) : (

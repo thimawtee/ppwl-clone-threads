@@ -28,19 +28,26 @@ const isDetailPage = location.pathname.startsWith("/post/");
       {/* DESKTOP SIDEBAR */}
       {/* ========================= */}
       <aside
-        className="
-          hidden
-          lg:flex
-          flex-col
-          w-[260px]
-          h-screen
-          sticky
-          top-0
-          border-r
-          border-[#1f1f1f]
-          overflow-hidden
-        "
-      >
+  className="
+    hidden
+    lg:flex
+    flex-col
+
+    fixed
+    left-0
+    top-0
+
+    w-[260px]
+    h-screen
+
+    border-r
+    border-[#101010]
+    overflow-hidden
+
+    bg-[#101010]
+    z-40
+  "
+>
         {/* SCROLLABLE CONTENT */}
         <div
           className="

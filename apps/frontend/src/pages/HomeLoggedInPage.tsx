@@ -210,7 +210,7 @@ async function handleDeletePost() {
   <div className="flex max-w-[1280px] mx-auto min-h-screen">
     <LoggedInSidebar onCreateThread={openCreateModal} />
 
-    <main className="flex-1 min-w-0 lg:max-w-[660px] lg:ml-18">
+    <main className="flex-1 min-w-0 lg:max-w-[660px] lg:ml-[290px]">
       <div className="w-full">
           {/* ─── MOBILE VIEW ───────────────── */}
 <div className="lg:hidden pt-[56px] min-h-screen">
@@ -322,7 +322,7 @@ onRefreshPost={async (updatedPost) => {
       </button>
     )}
 
-    <h1 className="text-[32px] font-bold tracking-tight">
+    <h1 className="text-[20px] font-medium tracking-tight">
       {selectedPost ? "Thread" : "For you"}
     </h1>
   </div>
