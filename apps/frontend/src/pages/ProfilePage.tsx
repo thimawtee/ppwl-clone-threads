@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import LoggedInSidebar from "../components/loggedin/LoggedInSidebar";
 import { API_URL } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import ThreadDetail from "@/components/ThreadDetail";
 
 import {
   BarChart3,
@@ -26,6 +27,18 @@ interface UserProfile {
   provider?: "EMAIL" | "GOOGLE";
 }
 
+interface Comment {
+  id: string;
+  content: string;
+  createdAt: string;
+  user: {
+    id: string;
+    name: string;
+    username: string;
+    avatarUrl: string | null;
+  };
+}
+
 interface Post {
   id: string;
   content: string;
@@ -34,6 +47,8 @@ interface Post {
   user: { id: string };
   likeCount: number;
   commentCount: number;
+  isLiked?: boolean;
+  comments?: Comment[];
 }
 
 export default function ProfilePage() {
@@ -53,6 +68,7 @@ export default function ProfilePage() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
 
   const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [postsLoading, setPostsLoading] = useState(true);
 
   const [form, setForm] = useState({
@@ -150,6 +166,44 @@ export default function ProfilePage() {
       })
       .catch(() => {});
   };
+
+  function handlePostLikeUpdate(
+  updatedPost: Partial<Post> & { id: string }
+) {
+  setUserPosts((prev) =>
+    prev.map((post) =>
+      post.id === updatedPost.id
+        ? { ...post, ...updatedPost }
+        : post
+    )
+  );
+}
+
+async function handleOpenPost(postId: string) {
+  if (!token) return;
+
+  try {
+    const res = await fetch(`${API_URL}/posts/${postId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      const oldPost = userPosts.find((p) => p.id === postId);
+
+      setSelectedPost({
+        ...data.data,
+        isLiked: data.data.isLiked ?? oldPost?.isLiked ?? false,
+        likeCount: data.data.likeCount ?? oldPost?.likeCount ?? 0,
+      });
+    }
+  } catch {
+    toast.error("Gagal membuka thread.");
+  }
+}
 
   const userAvatar = user?.avatarUrl || "";
 
@@ -259,20 +313,81 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="w-screen h-dvh bg-[#101010] text-white flex overflow-hidden">
-      <LoggedInSidebar onCreateThread={openCreateModal} />
+    <div className="min-h-screen bg-[#101010] text-white">
+  <div className="flex max-w-[1280px] mx-auto min-h-screen">
+      <LoggedInSidebar
+  onCreateThread={openCreateModal}
+  hideMobileHeader={!!selectedPost}
+/>
 
-      <main className="flex-1 h-full overflow-y-auto flex justify-center items-start px-3 md:px-4 pt-20 md:pt-6 pb-24 bg-[#101010]">
-        <div className="w-full max-w-[620px] h-fit border border-[#262626] rounded-[20px] md:rounded-[24px] overflow-hidden bg-[#0a0a0a] flex flex-col">
-          {/* Header username */}
-          <div className="px-4 md:px-6 pt-5 pb-3 flex justify-between items-center">
-            <span className="text-base font-semibold tracking-wide">
-              {user?.username || "loading..."}
-            </span>
-            <button className="text-[#777777] hover:text-white transition-colors">
-              <MoreHorizontal size={22} />
-            </button>
-          </div>
+      {selectedPost ? (
+  <main className="flex-1 min-w-0 lg:max-w-[660px] lg:ml-18 min-h-screen px-3 md:px-4 pt-20 md:pt-6 pb-24 bg-[#101010]">
+    <div className="w-full max-w-[620px]">
+      <div className="hidden lg:flex px-4 md:px-6 py-4 items-center gap-4">
+        <button
+          onClick={() => setSelectedPost(null)}
+          className="w-9 h-9 rounded-full bg-[#181818] flex items-center justify-center text-white hover:bg-[#222] transition"
+        >
+          ←
+        </button>
+
+        <h1 className="text-[32px] font-bold tracking-tight">
+          Thread
+        </h1>
+      </div>
+
+      <div className="border border-[#262626] rounded-[20px] md:rounded-[28px] overflow-hidden bg-[#101010]">
+        <ThreadDetail
+          post={selectedPost}
+          isOpen={true}
+          onClose={() => setSelectedPost(null)}
+          token={token}
+          currentUser={
+            user
+              ? {
+                  id: user.id,
+                  name: user.name,
+                  username: user.username,
+                  avatarUrl: user.avatarUrl ?? null,
+                }
+              : null
+          }
+          isLoggedIn={true}
+          onLoginRequired={() => {}}
+          onEditPost={() => {}}
+          onDeletePost={() => {}}
+          onRefreshPost={(updatedPost) => {
+            if (!updatedPost?.id) return;
+
+            setUserPosts((prev) =>
+              prev.map((post) =>
+                post.id === updatedPost.id
+                  ? { ...post, ...updatedPost }
+                  : post
+              )
+            );
+
+            setSelectedPost((prev) =>
+              prev && prev.id === updatedPost.id
+                ? { ...prev, ...updatedPost }
+                : prev
+            );
+          }}
+        />
+      </div>
+    </div>
+  </main>
+) : (
+
+      <main className="flex-1 min-w-0 max-w-[660px] lg:ml-18 min-h-screen px-3 md:px-4 pt-[56px] lg:pt-6 pb-24 bg-[#101010]">
+        <div className="hidden lg:block">
+  <div className="pt-4 pb-6 px-6 flex items-center gap-4">
+    <h1 className="text-[32px] font-bold tracking-tight">
+  {user?.username || "profile"}
+</h1>
+  </div>
+</div>
+        <div className="w-full border border-[#262626] rounded-[20px] md:rounded-[24px] overflow-hidden bg-[#0a0a0a] flex flex-col">
 
           {/* Info profil */}
           <div className="px-4 md:px-6 pt-4 pb-2">
@@ -282,7 +397,7 @@ export default function ProfilePage() {
                   {user?.name || "Loading..."}
                 </h2>
                 <p className="text-sm text-[#777777] mt-0.5">
-                  {user?.username ? `@${user.username}` : ""}
+                  {user?.username ? `${user.username}` : ""}
                 </p>
                 {user?.bio && (
                   <p className="text-sm text-white mt-4 max-w-[320px] leading-relaxed">
@@ -374,46 +489,47 @@ export default function ProfilePage() {
           </div>
           <div className="pb-2">
             {postsLoading ? (
-              <div className="flex justify-center py-12">
-                <Loader2 size={24} className="animate-spin text-[#555]" />
-              </div>
-            ) : userPosts.length === 0 ? (
-              // Empty state
-              <div className="flex flex-col items-center justify-center py-14 text-center px-6">
-                <SquarePen size={32} className="text-[#444] mb-3" />
-                <p className="text-sm font-semibold text-white mb-1">
-                  Belum ada thread
-                </p>
-                <p className="text-xs text-[#777777] mb-5 leading-relaxed">
-                  Bagikan apa yang ada di pikiranmu.
-                </p>
-                <button
-                  onClick={openCreateModal}
-                  className="bg-white text-black text-xs font-bold px-6 py-2 rounded-xl hover:bg-[#e6e6e6] transition-colors"
-                >
-                  Buat thread
-                </button>
-              </div>
-            ) : (
-              // List postingan
-              userPosts.map((post) => (
-                <FeedPost
-                  key={post.id}
-                  post={{
-                    ...post,
-                    user: {
-                      id: user?.id ?? "",
-                      name: user?.name ?? "",
-                      username: user?.username ?? "",
-                      avatarUrl: user?.avatarUrl ?? null,
-                    },
-                  }}
-                />
-              ))
-            )}
+  <div className="flex justify-center py-12">
+    <Loader2 size={24} className="animate-spin text-[#555]" />
+  </div>
+) : userPosts.length === 0 ? (
+  <div className="flex flex-col items-center justify-center py-14 text-center px-6">
+    <SquarePen size={32} className="text-[#444] mb-3" />
+    <p className="text-sm font-semibold text-white mb-1">
+      Belum ada thread
+    </p>
+    <p className="text-xs text-[#777777] mb-5 leading-relaxed">
+      Bagikan apa yang ada di pikiranmu.
+    </p>
+    <button
+      onClick={openCreateModal}
+      className="bg-white text-black text-xs font-bold px-6 py-2 rounded-xl hover:bg-[#e6e6e6] transition-colors"
+    >
+      Buat thread
+    </button>
+  </div>
+) : (
+  userPosts.map((post) => (
+    <FeedPost
+      key={post.id}
+      post={{
+        ...post,
+        user: {
+          id: user?.id ?? "",
+          name: user?.name ?? "",
+          username: user?.username ?? "",
+          avatarUrl: user?.avatarUrl ?? null,
+        },
+      }}
+      onLikeUpdate={handlePostLikeUpdate}
+      onOpenPost={() => handleOpenPost(post.id)}
+    />
+  ))
+)}
           </div>
         </div>
       </main>
+      )}
 
       <div className="hidden lg:block">
         <FloatingCreateButton onClick={openCreateModal} />
@@ -504,6 +620,7 @@ export default function ProfilePage() {
       )}
 
       <CreatePostModal open={isCreateOpen} onClose={handleCreateClose} />
+    </div>
     </div>
   );
 }

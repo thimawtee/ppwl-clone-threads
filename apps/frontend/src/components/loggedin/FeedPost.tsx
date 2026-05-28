@@ -37,11 +37,17 @@ function timeAgo(dateStr: string): string {
 interface FeedPostProps {
   post: Post;
   onOpenPost?: () => void;
+  onLikeUpdate?: (updatedPost: {
+    id: string;
+    isLiked: boolean;
+    likeCount: number;
+  }) => void;
 }
 
 export default function FeedPost({
   post,
   onOpenPost,
+  onLikeUpdate,
 }: FeedPostProps) {
   const navigate = useNavigate();
 
@@ -50,8 +56,8 @@ export default function FeedPost({
   const [editContent, setEditContent] = useState(post.content);
   const [saving, setSaving] = useState(false);
 
-  const [liked, setLiked] = useState(post.isLiked || false);
-  const [likeCount, setLikeCount] = useState(post.likeCount);
+  const liked = post.isLiked || false;
+const likeCount = post.likeCount;
   const [imageOpen, setImageOpen] = useState(false);
 
   const token = useAuthStore((state) => state.token);
@@ -77,8 +83,11 @@ export default function FeedPost({
         throw new Error(result.message || "Gagal like postingan");
       }
 
-      setLiked(result.liked);
-      setLikeCount(result.likeCount);
+      onLikeUpdate?.({
+  id: post.id,
+  isLiked: result.liked,
+  likeCount: result.likeCount,
+});
     } catch (error: any) {
       toast.error(error.message || "Terjadi kesalahan.");
     }
@@ -412,8 +421,14 @@ export default function FeedPost({
 
       {/* Edit Modal */}
       {editOpen && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-4">
-          <div className="w-full max-w-md bg-[#111] border border-[#262626] rounded-2xl p-5">
+        <div
+  onClick={(e) => e.stopPropagation()}
+  className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center px-4"
+>
+  <div
+    onClick={(e) => e.stopPropagation()}
+    className="w-full max-w-md bg-[#111] border border-[#262626] rounded-2xl p-5"
+  >
 
             <h2 className="text-lg font-bold mb-4">
               Edit Postingan
@@ -440,7 +455,10 @@ export default function FeedPost({
             <div className="flex gap-3 mt-4">
 
               <button
-                onClick={() => setEditOpen(false)}
+  onClick={(e) => {
+    e.stopPropagation();
+    setEditOpen(false);
+  }}
                 className="
                   flex-1
                   border
@@ -454,7 +472,10 @@ export default function FeedPost({
               </button>
 
               <button
-                onClick={handleUpdatePost}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleUpdatePost();
+  }}
                 disabled={saving}
                 className="
                   flex-1
